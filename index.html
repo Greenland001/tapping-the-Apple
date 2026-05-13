@@ -142,25 +142,20 @@ font-size:12px;
 
 <!-- DEV -->
 <div id="dev">
+
 <button onclick="document.getElementById('dev').style.display='none'">❌</button>
-<b>DEV</b><be>
+
+<b>DEV</b><br>
+
 <button onclick="addScore()">+10000</button>
 
 <div style="margin-top:5px;">Скины:</div>
+
 <button onclick="setSkin('green')">Green</button>
 <button onclick="setSkin('black')">Black</button>
 <button onclick="setSkin('gold')">Gold</button>
 
 </div>
-
-<script>
-
-let score=0;
-let damage=1;
-let cost=50;
-
-let owned={green:false,black:false,gold:false};
-let current=null;
 
 /* SAVE */
 function save(){
