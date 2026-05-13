@@ -7,7 +7,7 @@
 <title>Apple Game</title>
 
 <style>
-html, body {
+html, body{
     margin:0;
     height:100%;
     overflow:hidden;
@@ -56,8 +56,8 @@ button{
     right:10px;
     font-size:24px;
     background:#2c2c44;
-    border-radius:8px;
     border:none;
+    border-radius:8px;
     padding:8px;
 }
 
@@ -92,8 +92,7 @@ button{
 <body>
 
 <button id="shopBtn">🛒</button>
-
-<div id="critBanner">🔥 КРИТИЧЕСКИЙ УДАР!</div>
+<div id="critBanner">🔥 КРИТ!</div>
 
 <div class="game">
     <div id="apple">🍎</div>
@@ -105,12 +104,11 @@ button{
 
     <div class="panel">
         <div>Улучшение</div>
-        <div>Цена: <span id="cost">10</span></div>
+        <div>Цена: <span id="cost">50</span></div>
         <button onclick="upgradeDamage()">+1 урон</button>
     </div>
 
     <div class="panel" id="shop">
-        <div>Магазин</div>
         <button onclick="buySkin()">Белое яблоко (2500)</button>
     </div>
 </div>
@@ -118,8 +116,11 @@ button{
 <script>
 let score=0;
 let damage=1;
-let cost=10;
+let cost=50; // 🔥 дороже старт
 let skinBought=false;
+
+let audioCtx;
+let lastSound=0;
 
 const apple=document.getElementById("apple");
 const scoreEl=document.getElementById("score");
@@ -128,40 +129,50 @@ const costEl=document.getElementById("cost");
 const shop=document.getElementById("shop");
 const critBanner=document.getElementById("critBanner");
 
-/* 🔊 звук клика */
-function clickSound(){
-    let ctx=new (window.AudioContext||window.webkitAudioContext)();
-    let o=ctx.createOscillator();
-    let g=ctx.createGain();
+/* 🌿 лёгкий фон (тихий) */
+function startMusic(){
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+
+    let o=audioCtx.createOscillator();
+    let g=audioCtx.createGain();
 
     o.type="sine";
-    o.frequency.value=500;
+    o.frequency.value=90;
 
-    g.gain.value=0.05;
-
-    o.connect(g);
-    g.connect(ctx.destination);
-
-    o.start();
-    o.stop(ctx.currentTime+0.05);
-}
-
-/* 🌿 тихий фон */
-function startAmbient(){
-    let ctx=new (window.AudioContext||window.webkitAudioContext)();
-    let o=ctx.createOscillator();
-    let g=ctx.createGain();
-
-    o.type="sine";
-    o.frequency.value=120;
     g.gain.value=0.01;
 
     o.connect(g);
-    g.connect(ctx.destination);
+    g.connect(audioCtx.destination);
 
     o.start();
 }
-startAmbient();
+
+/* 🔊 ПРИЯТНЫЙ КЛИК (точно слышно) */
+function clickSound(){
+    if(!audioCtx) startMusic();
+
+    let now=Date.now();
+
+    // даём всегда звук, но без перегруза
+    if(now-lastSound < 40) return;
+    lastSound=now;
+
+    let o=audioCtx.createOscillator();
+    let g=audioCtx.createGain();
+
+    o.type="triangle";
+
+    // яркий, слышимый звук
+    o.frequency.value=600 + Math.random()*120;
+
+    g.gain.value=0.12; // 🔥 громче
+
+    o.connect(g);
+    g.connect(audioCtx.destination);
+
+    o.start();
+    o.stop(audioCtx.currentTime+0.05);
+}
 
 document.getElementById("shopBtn").onclick=()=>{
     shop.style.display=shop.style.display==="block"?"none":"block";
@@ -179,7 +190,7 @@ apple.onclick=(e)=>{
         crit=true;
 
         critBanner.style.display="block";
-        setTimeout(()=>critBanner.style.display="none",800);
+        setTimeout(()=>critBanner.style.display="none",700);
     }
 
     score+=gain;
@@ -210,7 +221,7 @@ function upgradeDamage(){
         score-=cost;
         damage++;
 
-        cost=Math.floor(cost*1.5); // 🔥 цена растёт
+        cost=Math.floor(cost*1.6 + 15); // 🔥 теперь реально дорого
 
         update();
     }
