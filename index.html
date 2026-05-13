@@ -16,6 +16,7 @@
         background:#111827;
         font-family:Arial, sans-serif;
         color:white;
+        overflow:hidden;
     }
 
     h1{
@@ -39,29 +40,27 @@
         box-shadow:0 0 25px rgba(255,0,0,0.5);
     }
 
-    /* Листик */
-    #apple::before{
-        content:"";
-        width:35px;
-        height:20px;
-        background:green;
-        position:absolute;
-        top:-10px;
-        left:80px;
-        border-radius:50%;
-        transform:rotate(30deg);
-    }
-
     /* Палочка */
-    #apple::after{
-        content:"";
+    .stick{
         width:8px;
         height:25px;
         background:brown;
         position:absolute;
         top:-18px;
-        left:63px;
+        left:66px;
         border-radius:10px;
+    }
+
+    /* Листик */
+    .leaf{
+        width:35px;
+        height:20px;
+        background:green;
+        position:absolute;
+        top:-12px;
+        left:78px;
+        border-radius:50%;
+        transform:rotate(30deg);
     }
 
     #apple:active{
@@ -75,7 +74,10 @@
 
 <div id="score">Очки: 0</div>
 
-<div id="apple"></div>
+<div id="apple">
+    <div class="stick"></div>
+    <div class="leaf"></div>
+</div>
 
 <script>
     let score = 0;
@@ -108,6 +110,7 @@
         background:#111827;
         font-family:Arial, sans-serif;
         color:white;
+        overflow:hidden;
     }
 
     h1{
@@ -131,29 +134,27 @@
         box-shadow:0 0 25px rgba(255,0,0,0.5);
     }
 
-    /* Листик */
-    #apple::before{
-        content:"";
-        width:35px;
-        height:20px;
-        background:green;
-        position:absolute;
-        top:-10px;
-        left:80px;
-        border-radius:50%;
-        transform:rotate(30deg);
-    }
-
     /* Палочка */
-    #apple::after{
-        content:"";
+    .stick{
         width:8px;
         height:25px;
         background:brown;
         position:absolute;
         top:-18px;
-        left:63px;
+        left:66px;
         border-radius:10px;
+    }
+
+    /* Листик */
+    .leaf{
+        width:35px;
+        height:20px;
+        background:green;
+        position:absolute;
+        top:-12px;
+        left:78px;
+        border-radius:50%;
+        transform:rotate(30deg);
     }
 
     #apple:active{
@@ -167,7 +168,10 @@
 
 <div id="score">Очки: 0</div>
 
-<div id="apple"></div>
+<div id="apple">
+    <div class="stick"></div>
+    <div class="leaf"></div>
+</div>
 
 <script>
     let score = 0;
