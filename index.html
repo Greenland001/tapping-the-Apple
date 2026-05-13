@@ -8,79 +8,83 @@
 
 <style>
 html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    overflow: hidden;
-    font-family: Arial;
-    background: #1e1e2f;
-    color: white;
+    margin:0;
+    height:100%;
+    overflow:hidden;
+    font-family:Arial;
+    background:#1e1e2f;
+    color:white;
 }
 
-.game {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+.game{
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
 }
 
-h1 { margin: 10px; }
-
-#apple {
-    font-size: 120px;
-    cursor: pointer;
-    user-select: none;
-    transition: transform 0.08s;
+#apple{
+    font-size:120px;
+    cursor:pointer;
+    user-select:none;
+    transition:transform 0.08s;
 }
 
-#apple.click {
-    transform: scale(0.9);
+#apple.click{ transform:scale(0.9); }
+
+.panel{
+    background:#2c2c44;
+    padding:10px;
+    margin-top:10px;
+    width:260px;
+    border-radius:10px;
 }
 
-.panel {
-    background: #2c2c44;
-    padding: 10px;
-    margin-top: 10px;
-    width: 260px;
-    border-radius: 10px;
+button{
+    padding:8px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    margin-top:5px;
 }
 
-button {
-    padding: 8px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 5px;
+#shopBtn{
+    position:fixed;
+    top:10px;
+    right:10px;
+    font-size:24px;
+    background:#2c2c44;
+    border-radius:8px;
+    border:none;
+    padding:8px;
 }
 
-#shopBtn {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    font-size: 24px;
-    background: #2c2c44;
-    border: none;
-    border-radius: 8px;
-    padding: 8px;
+#shop{ display:none; }
+
+.dmgText{
+    position:absolute;
+    font-weight:bold;
+    color:#66ccff;
+    animation:fly 0.6s forwards;
+    pointer-events:none;
 }
 
-#shop {
-    display: none;
+@keyframes fly{
+    0%{opacity:1; transform:translate(0,0);}
+    100%{opacity:0; transform:translate(var(--x), var(--y));}
 }
 
-.dmgText {
-    position: absolute;
-    font-weight: bold;
-    color: #66ffcc;
-    animation: dmgAnim 0.6s forwards;
-    pointer-events: none;
-}
-
-@keyframes dmgAnim {
-    0% {opacity: 1; transform: translate(0,0);}
-    100% {opacity: 0; transform: translate(var(--x), var(--y));}
+#critBanner{
+    position:fixed;
+    top:50px;
+    left:50%;
+    transform:translateX(-50%);
+    color:orange;
+    font-size:20px;
+    font-weight:bold;
+    display:none;
 }
 </style>
 </head>
@@ -89,9 +93,9 @@ button {
 
 <button id="shopBtn">🛒</button>
 
-<div class="game">
-    <h1>🍎 Apple Clicker</h1>
+<div id="critBanner">🔥 КРИТИЧЕСКИЙ УДАР!</div>
 
+<div class="game">
     <div id="apple">🍎</div>
 
     <div class="panel">
@@ -101,7 +105,8 @@ button {
 
     <div class="panel">
         <div>Улучшение</div>
-        <button onclick="upgradeDamage()">+1 урон (10 очков)</button>
+        <div>Цена: <span id="cost">10</span></div>
+        <button onclick="upgradeDamage()">+1 урон</button>
     </div>
 
     <div class="panel" id="shop">
@@ -111,43 +116,123 @@ button {
 </div>
 
 <script>
-let score = 0;
-let damage = 1;
-let skinBought = false;
+let score=0;
+let damage=1;
+let cost=10;
+let skinBought=false;
 
-const apple = document.getElementById("apple");
-const scoreEl = document.getElementById("score");
-const dmgEl = document.getElementById("damage");
-const shop = document.getElementById("shop");
+const apple=document.getElementById("apple");
+const scoreEl=document.getElementById("score");
+const dmgEl=document.getElementById("damage");
+const costEl=document.getElementById("cost");
+const shop=document.getElementById("shop");
+const critBanner=document.getElementById("critBanner");
 
-/* 🔥 ЗАГРУЗКА СОХРАНЕНИЯ */
-function loadGame(){
-    let savedScore = localStorage.getItem("score");
-    let savedDamage = localStorage.getItem("damage");
-    let savedSkin = localStorage.getItem("skin");
+/* 🔊 звук клика */
+function clickSound(){
+    let ctx=new (window.AudioContext||window.webkitAudioContext)();
+    let o=ctx.createOscillator();
+    let g=ctx.createGain();
 
-    if(savedScore !== null) score = Number(savedScore);
-    if(savedDamage !== null) damage = Number(savedDamage);
-    if(savedSkin === "true"){
-        skinBought = true;
-        apple.innerText = "🍏";
-        apple.style.filter = "brightness(1.8) grayscale(1)";
+    o.type="sine";
+    o.frequency.value=500;
+
+    g.gain.value=0.05;
+
+    o.connect(g);
+    g.connect(ctx.destination);
+
+    o.start();
+    o.stop(ctx.currentTime+0.05);
+}
+
+/* 🌿 тихий фон */
+function startAmbient(){
+    let ctx=new (window.AudioContext||window.webkitAudioContext)();
+    let o=ctx.createOscillator();
+    let g=ctx.createGain();
+
+    o.type="sine";
+    o.frequency.value=120;
+    g.gain.value=0.01;
+
+    o.connect(g);
+    g.connect(ctx.destination);
+
+    o.start();
+}
+startAmbient();
+
+document.getElementById("shopBtn").onclick=()=>{
+    shop.style.display=shop.style.display==="block"?"none":"block";
+};
+
+apple.onclick=(e)=>{
+
+    clickSound();
+
+    let gain=damage;
+    let crit=false;
+
+    if(Math.random()<0.03){
+        gain*=5;
+        crit=true;
+
+        critBanner.style.display="block";
+        setTimeout(()=>critBanner.style.display="none",800);
+    }
+
+    score+=gain;
+    update();
+
+    apple.classList.add("click");
+    setTimeout(()=>apple.classList.remove("click"),80);
+
+    let t=document.createElement("div");
+    t.className="dmgText";
+    t.innerText="+"+gain;
+
+    let x=(Math.random()*80-40)+"px";
+    let y=(Math.random()*-80-20)+"px";
+
+    t.style.setProperty("--x",x);
+    t.style.setProperty("--y",y);
+
+    t.style.left=e.pageX+"px";
+    t.style.top=e.pageY+"px";
+
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(),600);
+};
+
+function upgradeDamage(){
+    if(score>=cost){
+        score-=cost;
+        damage++;
+
+        cost=Math.floor(cost*1.5); // 🔥 цена растёт
+
+        update();
     }
 }
 
-/* 💾 СОХРАНЕНИЕ */
-function saveGame(){
-    localStorage.setItem("score", score);
-    localStorage.setItem("damage", damage);
-    localStorage.setItem("skin", skinBought);
+function buySkin(){
+    if(score>=2500 && !skinBought){
+        score-=2500;
+        skinBought=true;
+
+        apple.innerText="🍏";
+        apple.style.filter="brightness(1.8) grayscale(1)";
+        update();
+    }
 }
 
-/* загрузка при старте */
-loadGame();
-update();
+function update(){
+    scoreEl.textContent=score;
+    dmgEl.textContent=damage;
+    costEl.textContent=cost;
+}
+</script>
 
-document.getElementById("shopBtn").onclick = () => {
-    shop.style.display = (shop.style.display === "block") ? "none" : "block";
-};
-
-apple
+</body>
+</html>
