@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apple Game + DEV</title>
+<title>Apple Clicker 3.0</title>
 
 <style>
 html,body{
@@ -28,8 +28,11 @@ text-align:center;
 font-size:120px;
 cursor:pointer;
 user-select:none;
-transition:transform .1s;
-filter:drop-shadow(0 10px 10px rgba(0,0,0,.5));
+transition:transform .08s;
+}
+
+#apple:active{
+transform:scale(0.92);
 }
 
 .panel{
@@ -50,7 +53,7 @@ width:100%;
 }
 
 /* SHOP */
-#shopOverlay{
+#shop{
 position:fixed;
 top:0;
 left:0;
@@ -63,17 +66,12 @@ justify-content:center;
 z-index:10;
 }
 
-.shopBox{
+.box{
 background:#2c2c44;
 padding:20px;
 border-radius:15px;
 width:320px;
 text-align:center;
-}
-
-.preview{
-font-size:80px;
-margin:10px 0;
 }
 
 /* CONFIRM */
@@ -95,33 +93,20 @@ background:#2c2c44;
 padding:20px;
 border-radius:12px;
 width:260px;
-text-align:center;
 }
 
 /* SKINS */
-.greenGlow{filter:drop-shadow(0 0 12px lime);}
-.blackGlow{filter:drop-shadow(0 0 12px purple) brightness(.7);}
-.goldGlow{filter:drop-shadow(0 0 15px gold) brightness(1.4);}
+.green{filter:drop-shadow(0 0 12px lime);}
+.black{filter:drop-shadow(0 0 12px purple);}
+.gold{filter:drop-shadow(0 0 15px gold);}
 
-/* DEV PANEL */
-#devPanel{
-position:fixed;
-bottom:10px;
-left:10px;
-background:#111;
-padding:10px;
-border-radius:10px;
-display:none;
-z-index:9999;
-}
-
-/* SECRET CORNER */
-#secretCorner{
+/* SECRET AREA */
+#secret{
 position:fixed;
 top:0;
 right:0;
-width:20px;
-height:20px;
+width:30px;
+height:30px;
 opacity:0;
 z-index:9999;
 }
@@ -136,57 +121,48 @@ z-index:9999;
 
 <body>
 
-<!-- СЕКРЕТНЫЙ УГОЛ -->
-<div id="secretCorner"></div>
+<div id="secret"></div>
 
 <div class="game">
 
 <div id="apple">🍎</div>
 
 <div class="panel">
-<div>Очки: <span id="score">0</span></div>
-<div>Урон: <span id="damage">1</span></div>
+Очки: <span id="score">0</span><br>
+Урон: <span id="damage">1</span>
 </div>
 
 <div class="panel">
-<div>Улучшение</div>
 <div>Цена: <span id="cost">50</span></div>
-<button onclick="upgradeDamage()">+1 урон</button>
+<button onclick="upgrade()">+1 урон</button>
+</div>
+
+<div class="panel">
+<button onclick="openShop()">🛒 Магазин</button>
 </div>
 
 </div>
 
 <!-- SHOP -->
-<div id="shopOverlay">
-<div class="shopBox">
+<div id="shop">
+<div class="box">
 <h2>Магазин</h2>
-<div id="preview" class="preview">🍎</div>
 
-<button onclick="requestBuy('green')">🟢 1000</button>
-<button onclick="requestBuy('black')">🌙 5000</button>
-<button onclick="requestBuy('gold')">🥇 100000</button>
+<button onclick="buy('green',1000)">🟢 1000</button>
+<button onclick="buy('black',5000)">🌙 5000</button>
+<button onclick="buy('gold',100000)">🥇 100000</button>
 
-<button onclick="toggleShop()">Закрыть</button>
+<button onclick="closeShop()">Закрыть</button>
 </div>
 </div>
 
 <!-- CONFIRM -->
 <div id="confirm">
 <div id="confirmBox">
-<div id="confirmText"></div>
-<button onclick="confirmBuy(true)">КУПИТЬ / НАДЕТЬ</button>
-<button onclick="confirmBuy(false)">ОТМЕНА</button>
+<div id="text"></div>
+<button onclick="yes()">ДА</button>
+<button onclick="no()">НЕТ</button>
 </div>
-</div>
-
-<!-- DEV -->
-<div id="devPanel">
-<div>DEV MENU</div>
-<button onclick="devGiveScore()">+10000</button>
-<button onclick="devUnlockAll()">Unlock all skins</button>
-<button onclick="devSetSkin('green')">Green</button>
-<button onclick="devSetSkin('black')">Black</button>
-<button onclick="devSetSkin('gold')">Gold</button>
 </div>
 
 <script>
@@ -195,89 +171,44 @@ let score=0;
 let damage=1;
 let cost=50;
 
-let currentSkin="white";
-let pendingSkin=null;
-let pendingPrice=0;
-
 let owned={green:false,black:false,gold:false};
+let current=null;
+
+let pending=null;
+let price=0;
+
+/* SAVE */
+function save(){
+localStorage.setItem("s",score);
+localStorage.setItem("d",damage);
+localStorage.setItem("c",cost);
+localStorage.setItem("o",JSON.stringify(owned));
+}
 
 /* LOAD */
 function load(){
-let s=localStorage.getItem("score");
-let d=localStorage.getItem("damage");
-let c=localStorage.getItem("cost");
-let sk=localStorage.getItem("skin");
-let o=localStorage.getItem("owned");
+let s=localStorage.getItem("s");
+let d=localStorage.getItem("d");
+let c=localStorage.getItem("c");
+let o=localStorage.getItem("o");
 
 if(s)score=+s;
 if(d)damage=+d;
 if(c)cost=+c;
-if(sk)currentSkin=sk;
 if(o)owned=JSON.parse(o);
 
-applySkin(currentSkin);
+update();
 }
 
-/* SAVE */
-function save(){
-localStorage.setItem("score",score);
-localStorage.setItem("damage",damage);
-localStorage.setItem("cost",cost);
-localStorage.setItem("skin",currentSkin);
-localStorage.setItem("owned",JSON.stringify(owned));
-}
-
-/* UI */
+/* UPDATE */
 function update(){
-if(score<0)score=0;
-if(damage<1)damage=1;
-
 document.getElementById("score").textContent=score;
 document.getElementById("damage").textContent=damage;
 document.getElementById("cost").textContent=cost;
 }
 
-/* SKINS */
-function applySkin(skin){
-
-let apple=document.getElementById("apple");
-let preview=document.getElementById("preview");
-
-apple.className="";
-preview.className="preview";
-
-if(skin==="green"){
-apple.innerText="🍏";
-preview.innerText="🍏";
-apple.classList.add("greenGlow");
-preview.classList.add("greenGlow");
-}
-
-if(skin==="black"){
-apple.innerText="🍎";
-preview.innerText="🍎";
-apple.classList.add("blackGlow");
-preview.classList.add("blackGlow");
-}
-
-if(skin==="gold"){
-apple.innerText="🍎";
-preview.innerText="🍎";
-apple.classList.add("goldGlow");
-preview.classList.add("goldGlow");
-}
-
-if(skin==="white"){
-apple.innerText="🍎";
-preview.innerText="🍎";
-}
-
-currentSkin=skin;
-save();
-}
-
 /* CLICK */
-document.getElementById("apple").onclick=(e)=>{
+document.getElementById("apple").addEventListener("click",(e)=>{
 
 score+=damage;
 
@@ -294,10 +225,10 @@ setTimeout(()=>t.remove(),500);
 
 update();
 save();
-};
+});
 
 /* UPGRADE */
-function upgradeDamage(){
+function upgrade(){
 if(score>=cost){
 score-=cost;
 
@@ -315,88 +246,93 @@ save();
 }
 
 /* SHOP */
-function toggleShop(){
-document.getElementById("shopOverlay").style.display="none";
+function openShop(){
+document.getElementById("shop").style.display="flex";
+}
+function closeShop(){
+document.getElementById("shop").style.display="none";
 }
 
-function requestBuy(type){
+/* BUY */
+function buy(type,p){
 
-let prices={green:1000,black:5000,gold:100000};
-
-pendingSkin=type;
-pendingPrice=prices[type];
+pending=type;
+price=p;
 
 if(owned[type]){
-confirmText.innerText="Надеть этот скин?";
+document.getElementById("text").innerText="Надеть скин?";
 document.getElementById("confirm").style.display="flex";
 return;
 }
 
-if(score<pendingPrice){
+if(score<p){
 alert("НЕ ХВАТАЕТ ОЧКОВ");
 return;
 }
 
-confirmText.innerText="Купить за "+pendingPrice+"?";
+document.getElementById("text").innerText="Купить?";
 document.getElementById("confirm").style.display="flex";
 }
 
-function confirmBuy(ok){
-
+function yes(){
 document.getElementById("confirm").style.display="none";
-if(!ok)return;
 
-if(owned[pendingSkin]){
-applySkin(pendingSkin);
-pendingSkin=null;
+if(owned[pending]){
+apply(pending);
 return;
 }
 
-score-=pendingPrice;
-owned[pendingSkin]=true;
-applySkin(pendingSkin);
+score-=price;
+owned[pending]=true;
+apply(pending);
 
-pendingSkin=null;
-
+save();
 update();
+}
+
+function no(){
+document.getElementById("confirm").style.display="none";
+}
+
+/* SKIN */
+function apply(s){
+let a=document.getElementById("apple");
+a.className="";
+
+if(s==="green")a.innerText="🍏",a.classList.add("green");
+if(s==="black")a.innerText="🍎",a.classList.add("black");
+if(s==="gold")a.innerText="🍎",a.classList.add("gold");
+
+current=s;
 save();
 }
 
 /* DEV */
-let devClicks=0;
+let c1=0;
+let c2=0;
 
-document.getElementById("secretCorner").onclick=()=>{
+document.getElementById("apple").addEventListener("click",()=>{
+c1++;
+setTimeout(()=>c1=0,1500);
+});
 
-devClicks++;
+document.getElementById("secret").addEventListener("click",()=>{
+c2++;
+setTimeout(()=>c2=0,1500);
 
-setTimeout(()=>devClicks=0,1500);
-
-if(devClicks>=3){
-document.getElementById("devPanel").style.display="block";
-}
-};
-
-function devGiveScore(){
+if(c1>=3 && c2>=2){
+alert("DEV ON");
 score+=10000;
+owned={green:true,black:true,gold:true};
 update();
 save();
 }
+});
 
-function devUnlockAll(){
-owned={green:true,black:true,gold:true};
-save();
-}
-
-function devSetSkin(s){
-applySkin(s);
-}
-
-/* START */
 load();
 update();
 
 </script>
 
 </body>
-  </html>
-
+</html>
