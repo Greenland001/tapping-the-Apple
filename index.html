@@ -12,7 +12,7 @@ html, body{
     height:100%;
     overflow:hidden;
     font-family:Arial;
-    background:#1e1e2f;
+    background: radial-gradient(circle at top, #2b2b45, #151520);
     color:white;
 }
 
@@ -25,14 +25,22 @@ html, body{
     text-align:center;
 }
 
+h1{
+    margin:10px;
+    opacity:0.9;
+}
+
 #apple{
     font-size:120px;
     cursor:pointer;
     user-select:none;
-    transition:transform 0.08s;
+    transition:transform 0.08s, filter 0.2s;
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.4));
 }
 
-#apple.click{ transform:scale(0.9); }
+#apple.click{
+    transform:scale(0.92);
+}
 
 .panel{
     background:#2c2c44;
@@ -75,26 +83,17 @@ button{
     0%{opacity:1; transform:translate(0,0);}
     100%{opacity:0; transform:translate(var(--x), var(--y));}
 }
-
-#critBanner{
-    position:fixed;
-    top:50px;
-    left:50%;
-    transform:translateX(-50%);
-    color:orange;
-    font-size:20px;
-    font-weight:bold;
-    display:none;
-}
 </style>
 </head>
 
 <body>
 
 <button id="shopBtn">🛒</button>
-<div id="critBanner">🔥 КРИТ!</div>
 
 <div class="game">
+
+    <h1>🍎 Apple Clicker</h1>
+
     <div id="apple">🍎</div>
 
     <div class="panel">
@@ -111,100 +110,98 @@ button{
     <div class="panel" id="shop">
         <button onclick="buySkin()">Белое яблоко (2500)</button>
     </div>
+
 </div>
 
 <script>
-let score=0;
-let damage=1;
-let cost=50; // 🔥 дороже старт
-let skinBought=false;
+let score = 0;
+let damage = 1;
+let cost = 50;
+let skinBought = false;
 
+const apple = document.getElementById("apple");
+const scoreEl = document.getElementById("score");
+const dmgEl = document.getElementById("damage");
+const costEl = document.getElementById("cost");
+const shop = document.getElementById("shop");
+
+/* ======================
+   💾 Сохранение
+====================== */
+function saveGame(){
+    localStorage.setItem("score", score);
+    localStorage.setItem("damage", damage);
+    localStorage.setItem("cost", cost);
+    localStorage.setItem("skin", skinBought);
+}
+
+function loadGame(){
+    let s = localStorage.getItem("score");
+    let d = localStorage.getItem("damage");
+    let c = localStorage.getItem("cost");
+    let sk = localStorage.getItem("skin");
+
+    if(s!==null) score=Number(s);
+    if(d!==null) damage=Number(d);
+    if(c!==null) cost=Number(c);
+    if(sk==="true"){
+        skinBought=true;
+        apple.innerText="🍏";
+        apple.style.filter="brightness(1.6) grayscale(1)";
+    }
+}
+
+/* ======================
+   🔊 мягкий звук "кус"
+====================== */
 let audioCtx;
-let lastSound=0;
 
-const apple=document.getElementById("apple");
-const scoreEl=document.getElementById("score");
-const dmgEl=document.getElementById("damage");
-const costEl=document.getElementById("cost");
-const shop=document.getElementById("shop");
-const critBanner=document.getElementById("critBanner");
+function biteSound(){
+    if(!audioCtx){
+        audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    }
 
-/* 🌿 лёгкий фон (тихий) */
-function startMusic(){
-    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    let o = audioCtx.createOscillator();
+    let g = audioCtx.createGain();
 
-    let o=audioCtx.createOscillator();
-    let g=audioCtx.createGain();
+    o.type = "triangle";
+    o.frequency.value = 180 + Math.random()*40; // мягкий "кус"
 
-    o.type="sine";
-    o.frequency.value=90;
-
-    g.gain.value=0.01;
+    g.gain.value = 0.05;
 
     o.connect(g);
     g.connect(audioCtx.destination);
 
     o.start();
+
+    o.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.08);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+
+    o.stop(audioCtx.currentTime + 0.09);
 }
 
-/* 🔊 ПРИЯТНЫЙ КЛИК (точно слышно) */
-function clickSound(){
-    if(!audioCtx) startMusic();
-
-    let now=Date.now();
-
-    // даём всегда звук, но без перегруза
-    if(now-lastSound < 40) return;
-    lastSound=now;
-
-    let o=audioCtx.createOscillator();
-    let g=audioCtx.createGain();
-
-    o.type="triangle";
-
-    // яркий, слышимый звук
-    o.frequency.value=600 + Math.random()*120;
-
-    g.gain.value=0.12; // 🔥 громче
-
-    o.connect(g);
-    g.connect(audioCtx.destination);
-
-    o.start();
-    o.stop(audioCtx.currentTime+0.05);
-}
-
+/* ======================
+   🎮 игра
+====================== */
 document.getElementById("shopBtn").onclick=()=>{
-    shop.style.display=shop.style.display==="block"?"none":"block";
+    shop.style.display = shop.style.display==="block"?"none":"block";
 };
 
 apple.onclick=(e)=>{
 
-    clickSound();
+    biteSound();
 
-    let gain=damage;
-    let crit=false;
-
-    if(Math.random()<0.03){
-        gain*=5;
-        crit=true;
-
-        critBanner.style.display="block";
-        setTimeout(()=>critBanner.style.display="none",700);
-    }
-
-    score+=gain;
-    update();
+    score += damage;
 
     apple.classList.add("click");
     setTimeout(()=>apple.classList.remove("click"),80);
 
-    let t=document.createElement("div");
-    t.className="dmgText";
-    t.innerText="+"+gain;
+    let t = document.createElement("div");
+    t.className = "dmgText";
+    t.innerText = "+" + damage;
 
-    let x=(Math.random()*80-40)+"px";
-    let y=(Math.random()*-80-20)+"px";
+    let x = (Math.random()*80-40)+"px";
+    let y = (Math.random()*-80-20)+"px";
 
     t.style.setProperty("--x",x);
     t.style.setProperty("--y",y);
@@ -214,36 +211,46 @@ apple.onclick=(e)=>{
 
     document.body.appendChild(t);
     setTimeout(()=>t.remove(),600);
+
+    update();
+    saveGame();
 };
 
 function upgradeDamage(){
-    if(score>=cost){
-        score-=cost;
+    if(score >= cost){
+        score -= cost;
         damage++;
 
-        cost=Math.floor(cost*1.6 + 15); // 🔥 теперь реально дорого
+        cost = Math.floor(cost * 1.5 + 20);
 
         update();
+        saveGame();
     }
 }
 
 function buySkin(){
-    if(score>=2500 && !skinBought){
-        score-=2500;
-        skinBought=true;
+    if(score >= 2500 && !skinBought){
+        score -= 2500;
+        skinBought = true;
 
         apple.innerText="🍏";
-        apple.style.filter="brightness(1.8) grayscale(1)";
+        apple.style.filter="brightness(1.6) grayscale(1)";
+
         update();
+        saveGame();
     }
 }
 
 function update(){
-    scoreEl.textContent=score;
-    dmgEl.textContent=damage;
-    costEl.textContent=cost;
+    scoreEl.textContent = score;
+    dmgEl.textContent = damage;
+    costEl.textContent = cost;
 }
+
+/* загрузка */
+loadGame();
+update();
 </script>
 
 </body>
-</html>
+</html>        
