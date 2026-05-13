@@ -11,13 +11,12 @@ html, body {
     margin: 0;
     padding: 0;
     height: 100%;
-    overflow: hidden; /* ❗ запрещает "уезд" экрана */
+    overflow: hidden;
     font-family: Arial;
     background: #1e1e2f;
     color: white;
 }
 
-/* Центр всей игры */
 .game {
     height: 100%;
     display: flex;
@@ -27,9 +26,7 @@ html, body {
     text-align: center;
 }
 
-h1 {
-    margin: 10px;
-}
+h1 { margin: 10px; }
 
 #apple {
     font-size: 120px;
@@ -38,7 +35,6 @@ h1 {
     transition: transform 0.08s;
 }
 
-/* фиксированная анимация клика */
 #apple.click {
     transform: scale(0.9);
 }
@@ -49,6 +45,14 @@ h1 {
     margin-top: 10px;
     width: 260px;
     border-radius: 10px;
+}
+
+button {
+    padding: 8px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 5px;
 }
 
 #shopBtn {
@@ -76,7 +80,21 @@ h1 {
 
 @keyframes fade {
     0% {opacity: 1; transform: translateY(0);}
-    100% {opacity: 0; transform: translateY(-30px);}
+    100% {opacity: 0; transform: translateY(-40px);}
+}
+
+/* урон текст в разные стороны */
+.dmgText {
+    position: absolute;
+    font-weight: bold;
+    color: #66ffcc;
+    animation: dmgAnim 0.6s forwards;
+    pointer-events: none;
+}
+
+@keyframes dmgAnim {
+    0% {opacity: 1; transform: translate(0,0);}
+    100% {opacity: 0; transform: translate(var(--x), var(--y));}
 }
 </style>
 </head>
@@ -92,6 +110,12 @@ h1 {
 
     <div class="panel">
         <div>Очки: <span id="score">0</span></div>
+        <div>Урон: <span id="damage">1</span></div>
+    </div>
+
+    <div class="panel">
+        <div>Улучшение</div>
+        <button onclick="upgradeDamage()">+1 урон (10 очков)</button>
     </div>
 
     <div class="panel" id="shop">
@@ -102,10 +126,12 @@ h1 {
 
 <script>
 let score = 0;
+let damage = 1;
 let skinBought = false;
 
 const apple = document.getElementById("apple");
 const scoreEl = document.getElementById("score");
+const dmgEl = document.getElementById("damage");
 const shop = document.getElementById("shop");
 
 document.getElementById("shopBtn").onclick = () => {
@@ -113,24 +139,38 @@ document.getElementById("shopBtn").onclick = () => {
 };
 
 apple.onclick = (e) => {
-    score += 1;
+
+    score += damage;
     update();
 
-    // стабильный клик без "уезда"
     apple.classList.add("click");
     setTimeout(() => apple.classList.remove("click"), 80);
 
-    // крит эффект (редкий)
-    if (Math.random() < 0.02) {
-        let t = document.createElement("div");
-        t.className = "critText";
-        t.innerText = "КРИТ!";
-        t.style.left = e.pageX + "px";
-        t.style.top = e.pageY + "px";
-        document.body.appendChild(t);
-        setTimeout(()=>t.remove(),1000);
-    }
+    // 💥 урон текст в разные стороны
+    let t = document.createElement("div");
+    t.className = "dmgText";
+    t.innerText = "+" + damage;
+
+    let x = (Math.random() * 80 - 40) + "px";
+    let y = (Math.random() * -80 - 20) + "px";
+
+    t.style.setProperty("--x", x);
+    t.style.setProperty("--y", y);
+
+    t.style.left = e.pageX + "px";
+    t.style.top = e.pageY + "px";
+
+    document.body.appendChild(t);
+    setTimeout(()=>t.remove(),600);
 };
+
+function upgradeDamage(){
+    if(score >= 10){
+        score -= 10;
+        damage += 1;
+        update();
+    }
+}
 
 function buySkin(){
     if(score >= 2500 && !skinBought){
@@ -144,6 +184,7 @@ function buySkin(){
 
 function update(){
     scoreEl.textContent = score;
+    dmgEl.textContent = damage;
 }
 </script>
 
