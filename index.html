@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apple Clicker 3.3</title>
+<title>Apple Clicker 4.0</title>
 
 <style>
 html,body{
@@ -63,7 +63,7 @@ z-index:10;
 }
 
 .shopBox{
-max-width:400px;
+max-width:450px;
 margin:auto;
 background:#2c2c44;
 padding:10px;
@@ -71,27 +71,51 @@ border-radius:10px;
 text-align:center;
 }
 
-/* DEV */
-#dev{
-position:fixed;
-bottom:10px;
-right:10px;
-background:#000;
-padding:10px;
-border-radius:10px;
-width:180px;
-font-size:14px;
-z-index:9999;
+/* RARITY BAR */
+.rarityBar{
+display:flex;
+justify-content:space-between;
+font-size:12px;
+margin-bottom:10px;
+padding:5px;
+border-radius:8px;
+background:#1a1a2a;
 }
 
-#dev button{
-font-size:12px;
+.r1{color:#ccc;}
+.r2{color:lime;}
+.r3{color:#4da3ff;}
+.r4{color:red;}
+.r5{color:gold;}
+
+/* SHOP GRID */
+.skinGrid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+
+.skinCard{
+background:#1f1f33;
+padding:10px;
+border-radius:12px;
+cursor:pointer;
+transition:0.2s;
+user-select:none;
+}
+
+.skinCard:hover{
+transform:scale(1.05);
 }
 
 /* SKINS */
-.green{color:lime;text-shadow:0 0 10px lime;}
-.black{color:white;}
-.gold{color:gold;text-shadow:0 0 12px gold;}
+.green{color:lime;}
+.blue{color:#4da3ff;}
+.dark{color:#333;}
+.white{color:white;}
+.banana{color:#ffd84d;}
+.demon{color:red;text-shadow:0 0 8px red;}
+.gold{color:gold;}
 
 </style>
 </head>
@@ -108,15 +132,9 @@ font-size:12px;
 </div>
 
 <div class="panel">
-
-<b>Улучшения</b>
-
-<div style="margin-top:5px;">
 <b>Улучшение клика</b><br>
 Цена: <span id="cost">50</span><br>
 <button onclick="upgrade()">+1 урон</button>
-</div>
-
 </div>
 
 <div class="panel">
@@ -129,54 +147,72 @@ font-size:12px;
 <div id="shop">
 <div class="shopBox">
 
-<h3>Магазин</h3>
+<div class="rarityBar">
+<span class="r1">Обычный</span>
+<span class="r2">Редкий</span>
+<span class="r3">Сверхредкий</span>
+<span class="r4">Мифический</span>
+<span class="r5">Легендарный</span>
+</div>
 
-<button onclick="buy('green',1000)">🟢 1000</button>
-<button onclick="buy('black',5000)">⚪ 5000</button>
-<button onclick="buy('gold',100000)">🥇 100000</button>
+<div class="skinGrid">
+
+<div class="skinCard" onclick="buy('green',1000)">🟢 Зелёный</div>
+<div class="skinCard" onclick="buy('blue',2000)">🔵 Синий</div>
+
+<div class="skinCard" onclick="buy('dark',5000)">⚫ Тёмный</div>
+<div class="skinCard" onclick="buy('white',5000)">⚪ Белый</div>
+
+<div class="skinCard" onclick="buy('banana',15000)">🍌 Банановый</div>
+
+<div class="skinCard" onclick="buy('demon',50000)">🔥 Адский</div>
+
+<div class="skinCard" onclick="buy('gold',100000)">🥇 Золотой</div>
+
+</div>
 
 <button onclick="closeShop()">Закрыть</button>
 
 </div>
 </div>
 
-<!-- DEV -->
-<div id="dev">
+<script>
 
-<button onclick="document.getElementById('dev').style.display='none'">❌</button>
+let score=0;
+let damage=1;
+let cost=50;
 
-<b>DEV</b><br>
+let owned={
+green:false,blue:false,dark:false,white:false,banana:false,demon:false,gold:false
+};
 
-<button onclick="addScore()">+10000</button>
-
-<div style="margin-top:5px;">Скины:</div>
-
-<button onclick="setSkin('green')">Green</button>
-<button onclick="setSkin('black')">Black</button>
-<button onclick="setSkin('gold')">Gold</button>
-
-</div>
+let current="green";
 
 /* SAVE */
 function save(){
-localStorage.setItem("s",score);
-localStorage.setItem("d",damage);
-localStorage.setItem("c",cost);
-localStorage.setItem("o",JSON.stringify(owned));
+localStorage.setItem("score",score);
+localStorage.setItem("damage",damage);
+localStorage.setItem("cost",cost);
+localStorage.setItem("owned",JSON.stringify(owned));
+localStorage.setItem("current",current);
 }
 
 /* LOAD */
 function load(){
-let s=localStorage.getItem("s");
-let d=localStorage.getItem("d");
-let c=localStorage.getItem("c");
-let o=localStorage.getItem("o");
 
-if(s)score=+s;
-if(d)damage=+d;
-if(c)cost=+c;
-if(o)owned=JSON.parse(o);
+let s=localStorage.getItem("score");
+let d=localStorage.getItem("damage");
+let c=localStorage.getItem("cost");
+let o=localStorage.getItem("owned");
+let cur=localStorage.getItem("current");
 
+if(s!==null)score=+s;
+if(d!==null)damage=+d;
+if(c!==null)cost=+c;
+if(o!==null)owned=JSON.parse(o);
+if(cur!==null)current=cur;
+
+apply(current);
 update();
 }
 
@@ -250,22 +286,15 @@ let a=document.getElementById("apple");
 a.className="";
 
 if(s==="green"){a.innerText="🍏";a.classList.add("green");}
-if(s==="black"){a.innerText="🍎";a.classList.add("black");}
+if(s==="blue"){a.innerText="🍎";a.classList.add("blue");}
+if(s==="dark"){a.innerText="🍎";a.classList.add("dark");}
+if(s==="white"){a.innerText="🍎";a.classList.add("white");}
+if(s==="banana"){a.innerText="🍌";a.classList.add("banana");}
+if(s==="demon"){a.innerText="🍎";a.classList.add("demon");}
 if(s==="gold"){a.innerText="🍎";a.classList.add("gold");}
 
 current=s;
 save();
-}
-
-/* DEV */
-function addScore(){
-score+=10000;
-update();
-save();
-}
-
-function setSkin(s){
-apply(s);
 }
 
 load();
