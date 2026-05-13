@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
-<title>Apple Game Shop</title>
+<title>Apple Game</title>
 
 <style>
 html, body{
@@ -52,7 +52,7 @@ button{
     width:100%;
 }
 
-/* ================= SHOP FULL SCREEN ================= */
+/* SHOP */
 #shopOverlay{
     position:fixed;
     top:0;
@@ -63,7 +63,6 @@ button{
     display:none;
     align-items:center;
     justify-content:center;
-    flex-direction:column;
     z-index:10;
 }
 
@@ -71,25 +70,40 @@ button{
     background:#2c2c44;
     padding:20px;
     border-radius:15px;
-    width:300px;
+    width:320px;
     text-align:center;
 }
 
 .preview{
     font-size:80px;
     margin:10px 0;
-    filter:drop-shadow(0 5px 10px rgba(0,0,0,0.5));
 }
 
-#closeShop{
-    margin-top:10px;
-    background:red;
-    color:white;
+/* confirm */
+#confirm{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.8);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:20;
+}
+
+#confirmBox{
+    background:#2c2c44;
+    padding:20px;
+    border-radius:12px;
+    width:260px;
+    text-align:center;
 }
 
 /* skins */
-.greenGlow{ filter:drop-shadow(0 0 10px lime); }
-.blackGlow{ filter:drop-shadow(0 0 10px purple) brightness(0.7); }
+.greenGlow{ filter:drop-shadow(0 0 12px lime); }
+.blackGlow{ filter:drop-shadow(0 0 12px purple) brightness(0.7); }
 .goldGlow{ filter:drop-shadow(0 0 15px gold) brightness(1.4); }
 
 #shopBtn{
@@ -119,26 +133,37 @@ button{
     </div>
 
     <div class="panel">
+        <div>Улучшение</div>
+        <div>Цена: <span id="cost">50</span></div>
         <button onclick="upgradeDamage()">+1 урон</button>
     </div>
 
 </div>
 
-<!-- ================= SHOP OVERLAY ================= -->
+<!-- SHOP -->
 <div id="shopOverlay">
     <div class="shopBox">
 
-        <h2>Магазин скинов</h2>
+        <h2>Магазин</h2>
 
         <div>Предпросмотр:</div>
         <div id="preview" class="preview">🍎</div>
 
-        <button onclick="buySkin('green')">🟢 Зелёное (1000)</button>
-        <button onclick="buySkin('black')">🌙 Ночное (5000)</button>
-        <button onclick="buySkin('gold')">🥇 Золотое (100000)</button>
+        <button onclick="requestBuy('green')">🟢 Зелёное (1000)</button>
+        <button onclick="requestBuy('black')">🌙 Ночное (5000)</button>
+        <button onclick="requestBuy('gold')">🥇 Золотое (100000)</button>
 
-        <button id="closeShop" onclick="toggleShop()">Закрыть</button>
+        <button onclick="toggleShop()">Закрыть</button>
 
+    </div>
+</div>
+
+<!-- CONFIRM -->
+<div id="confirm">
+    <div id="confirmBox">
+        <div id="confirmText">Купить?</div>
+        <button onclick="confirmBuy(true)">КУПИТЬ</button>
+        <button onclick="confirmBuy(false)">ОТМЕНА</button>
     </div>
 </div>
 
@@ -148,44 +173,53 @@ let damage=1;
 let cost=50;
 
 let currentSkin="white";
+let pendingSkin=null;
+let pendingPrice=0;
 
 const apple=document.getElementById("apple");
 const scoreEl=document.getElementById("score");
 const dmgEl=document.getElementById("damage");
+const costEl=document.getElementById("cost");
 const shop=document.getElementById("shopOverlay");
 const preview=document.getElementById("preview");
+const confirmBox=document.getElementById("confirm");
+const confirmText=document.getElementById("confirmText");
 
-/* OPEN/CLOSE SHOP */
+/* SHOP */
 function toggleShop(){
     shop.style.display = shop.style.display==="flex"?"none":"flex";
 }
 
-/* SHOP BUTTON */
 document.getElementById("shopBtn").onclick=toggleShop;
 
 /* SAVE */
 function save(){
     localStorage.setItem("score",score);
     localStorage.setItem("damage",damage);
+    localStorage.setItem("cost",cost);
     localStorage.setItem("skin",currentSkin);
 }
 
+/* LOAD */
 function load(){
     let s=localStorage.getItem("score");
     let d=localStorage.getItem("damage");
+    let c=localStorage.getItem("cost");
     let sk=localStorage.getItem("skin");
 
     if(s) score=Number(s);
     if(d) damage=Number(d);
+    if(c) cost=Number(c);
     if(sk) currentSkin=sk;
 
     applySkin(currentSkin);
 }
 
-/* UPDATE UI */
+/* UI */
 function update(){
     scoreEl.textContent=score;
     dmgEl.textContent=damage;
+    costEl.textContent=cost;
 }
 
 /* SKINS */
@@ -221,26 +255,44 @@ function applySkin(skin){
     }
 
     currentSkin=skin;
-    save();
 }
 
-/* BUY */
-function buySkin(type){
+/* REQUEST BUY */
+function requestBuy(type){
 
-    if(type==="green" && score>=1000){
-        score-=1000;
-        applySkin("green");
+    let prices={
+        green:1000,
+        black:5000,
+        gold:100000
+    };
+
+    pendingSkin=type;
+    pendingPrice=prices[type];
+
+    confirmText.innerText=`Купить за ${pendingPrice}?`;
+    confirmBox.style.display="flex";
+}
+
+/* CONFIRM BUY */
+function confirmBuy(yes){
+
+    confirmBox.style.display="none";
+
+    if(!yes){
+        pendingSkin=null;
+        return;
     }
 
-    if(type==="black" && score>=5000){
-        score-=5000;
-        applySkin("black");
+    if(score<pendingPrice){
+        alert("Недостаточно очков");
+        return;
     }
 
-    if(type==="gold" && score>=100000){
-        score-=100000;
-        applySkin("gold");
-    }
+    score-=pendingPrice;
+
+    applySkin(pendingSkin);
+
+    pendingSkin=null;
 
     update();
     save();
@@ -271,3 +323,5 @@ update();
 
 </body>
 </html>
+
+    
