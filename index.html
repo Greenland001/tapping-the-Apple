@@ -19,15 +19,14 @@
     }
 
     h1{
-        margin-bottom:20px;
+        margin-bottom:10px;
     }
 
     #score{
         font-size:40px;
-        margin-bottom:30px;
+        margin-bottom:20px;
     }
 
-    /* Яблоко */
     #apple{
         width:140px;
         height:140px;
@@ -37,9 +36,9 @@
         cursor:pointer;
         transition:transform 0.1s;
         box-shadow:0 0 20px rgba(255,0,0,0.5);
+        margin-bottom:20px;
     }
 
-    /* Палочка */
     #apple .stick{
         position:absolute;
         width:8px;
@@ -50,7 +49,6 @@
         border-radius:10px;
     }
 
-    /* Листик */
     #apple .leaf{
         position:absolute;
         width:35px;
@@ -65,6 +63,23 @@
     #apple:active{
         transform:scale(0.9);
     }
+
+    #shop{
+        margin-top:10px;
+    }
+
+    button{
+        padding:10px 15px;
+        font-size:16px;
+        cursor:pointer;
+        border:none;
+        border-radius:10px;
+    }
+
+    button:disabled{
+        background:gray;
+        cursor:not-allowed;
+    }
 </style>
 </head>
 <body>
@@ -73,21 +88,44 @@
 
 <div id="score">Очки: 0</div>
 
-<!-- ОДНО яблоко -->
 <div id="apple">
     <div class="stick"></div>
     <div class="leaf"></div>
 </div>
 
+<div id="shop">
+    <button id="upgradeBtn">Купить улучшение (+1 к клику) — 60</button>
+</div>
+
 <script>
     let score = 0;
+    let perClick = 1;
+    let upgradeBought = false;
 
     const apple = document.getElementById("apple");
     const scoreText = document.getElementById("score");
+    const upgradeBtn = document.getElementById("upgradeBtn");
 
-    apple.onclick = function() {
-        score++;
+    function updateScore(){
         scoreText.textContent = "Очки: " + score;
+    }
+
+    apple.onclick = function(){
+        score += perClick;
+        updateScore();
+    };
+
+    upgradeBtn.onclick = function(){
+        if(score >= 60 && !upgradeBought){
+            score -= 60;
+            perClick = 2;
+            upgradeBought = true;
+
+            upgradeBtn.textContent = "Улучшение куплено";
+            upgradeBtn.disabled = true;
+
+            updateScore();
+        }
     };
 </script>
 
