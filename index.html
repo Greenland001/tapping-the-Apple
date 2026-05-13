@@ -64,16 +64,13 @@
         transform:scale(0.9);
     }
 
-    #shop{
-        margin-top:10px;
-    }
-
     button{
         padding:10px 15px;
         font-size:16px;
         cursor:pointer;
         border:none;
         border-radius:10px;
+        margin:5px;
     }
 
     button:disabled{
@@ -84,7 +81,7 @@
 </head>
 <body>
 
-<h1>Нажимай на яблоко!</h1>
+<h1>Яблоко кликер 🍎</h1>
 
 <div id="score">Очки: 0</div>
 
@@ -93,38 +90,56 @@
     <div class="leaf"></div>
 </div>
 
-<div id="shop">
-    <button id="upgradeBtn">Купить улучшение (+1 к клику) — 60</button>
+<div>
+    <button id="up1">Улучшение 1 (+2 за клик) — 60</button>
+    <button id="up2">Улучшение 2 (+3 за клик) — 200</button>
 </div>
 
 <script>
     let score = 0;
     let perClick = 1;
-    let upgradeBought = false;
+
+    let up1Bought = false;
+    let up2Bought = false;
 
     const apple = document.getElementById("apple");
     const scoreText = document.getElementById("score");
-    const upgradeBtn = document.getElementById("upgradeBtn");
 
-    function updateScore(){
+    const up1 = document.getElementById("up1");
+    const up2 = document.getElementById("up2");
+
+    function update(){
         scoreText.textContent = "Очки: " + score;
     }
 
     apple.onclick = function(){
         score += perClick;
-        updateScore();
+        update();
     };
 
-    upgradeBtn.onclick = function(){
-        if(score >= 60 && !upgradeBought){
+    up1.onclick = function(){
+        if(!up1Bought && score >= 60){
             score -= 60;
             perClick = 2;
-            upgradeBought = true;
+            up1Bought = true;
 
-            upgradeBtn.textContent = "Улучшение куплено";
-            upgradeBtn.disabled = true;
+            up1.textContent = "Куплено";
+            up1.disabled = true;
 
-            updateScore();
+            update();
+        }
+    };
+
+    up2.onclick = function(){
+        if(!up2Bought && score >= 200){
+            score -= 200;
+            perClick = 3;
+            up2Bought = true;
+
+            up2.textContent = "Куплено";
+            up2.disabled = true;
+
+            update();
         }
     };
 </script>
