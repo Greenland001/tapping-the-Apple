@@ -1,167 +1,162 @@
+<!DOCTYPE html>
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Яблоко Кликер</title>
+<title>Apple Game</title>
 
 <style>
-    body{
-        margin:0;
-        height:100vh;
-        display:flex;
-        flex-direction:column;
-        justify-content:center;
-        align-items:center;
-        background:#111827;
-        font-family:Arial, sans-serif;
-        color:white;
-    }
+body{
+    margin:0;
+    font-family:Arial;
+    background:#1e1e2f;
+    color:white;
+    text-align:center;
+}
 
-    #score{
-        font-size:40px;
-        margin-bottom:10px;
-    }
+h1{margin-top:20px;}
 
-    #critText{
-        height:30px;
-        font-size:22px;
-        margin-bottom:10px;
-        font-weight:bold;
-        color:orange;
-        opacity:0;
-        transition:0.2s;
-    }
+#apple{
+    font-size:120px;
+    cursor:pointer;
+    user-select:none;
+    display:inline-block;
+    transition:transform 0.08s;
+}
 
-    #apple{
-        width:140px;
-        height:140px;
-        background:red;
-        border-radius:50%;
-        position:relative;
-        cursor:pointer;
-        margin-bottom:20px;
-        box-shadow:0 0 20px rgba(255,0,0,0.5);
-        transition:0.1s;
-    }
+.panel{
+    background:#2c2c44;
+    padding:12px;
+    margin:10px auto;
+    width:320px;
+    border-radius:10px;
+}
 
-    #apple:active{
-        transform:scale(0.9);
-    }
+button{
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    margin-top:8px;
+}
 
-    #apple .stick{
-        position:absolute;
-        width:8px;
-        height:25px;
-        background:brown;
-        top:-18px;
-        left:66px;
-        border-radius:10px;
-    }
+#shopBtn{
+    position:fixed;
+    top:15px;
+    right:15px;
+    font-size:24px;
+    background:#2c2c44;
+}
 
-    #apple .leaf{
-        position:absolute;
-        width:35px;
-        height:20px;
-        background:green;
-        top:-10px;
-        left:78px;
-        border-radius:50%;
-        transform:rotate(30deg);
-    }
+#shop{
+    display:none;
+}
 
-    button{
-        padding:10px 15px;
-        border:none;
-        border-radius:10px;
-        cursor:pointer;
-        margin:5px;
-    }
+.critText{
+    position:absolute;
+    color:orange;
+    font-weight:bold;
+    animation:fade 1s forwards;
+    pointer-events:none;
+}
 
-    button:disabled{
-        background:gray;
-        cursor:not-allowed;
-    }
+@keyframes fade{
+    0%{opacity:1; transform:translateY(0);}
+    100%{opacity:0; transform:translateY(-30px);}
+}
 </style>
 </head>
 
 <body>
 
-<div id="score">Очки: 0</div>
-<div id="critText">КРИТИЧЕСКИЙ УРОН</div>
+<button id="shopBtn">🛒</button>
 
-<div id="apple">
-    <div class="stick"></div>
-    <div class="leaf"></div>
+<h1>🍎 Apple Clicker</h1>
+
+<div id="apple">🍎</div>
+
+<div class="panel">
+    <div>Очки: <span id="score">0</span></div>
 </div>
 
-<div>
-    <button id="upgrade">Улучшение (+урон) — 60</button>
+<div class="panel">
+    <div>Магазин</div>
+    <div id="shop">
+        <button onclick="buySkin()">Купить белое яблоко (2500)</button>
+    </div>
 </div>
 
 <script>
-let score = Number(localStorage.getItem("score")) || 0;
-let damage = Number(localStorage.getItem("damage")) || 1;
-let price = Number(localStorage.getItem("price")) || 60;
-let stage = Number(localStorage.getItem("stage")) || 0;
+let score = 0;
 
-const scoreText = document.getElementById("score");
+let critUsed = 0;
+let windowPoints = 0;
+
+let skinBought = false;
+
 const apple = document.getElementById("apple");
-const shop = document.getElementById("upgrade");
-const critText = document.getElementById("critText");
+const scoreEl = document.getElementById("score");
+const shop = document.getElementById("shop");
 
-function save(){
-    localStorage.setItem("score", score);
-    localStorage.setItem("damage", damage);
-    localStorage.setItem("price", price);
-    localStorage.setItem("stage", stage);
-}
+document.getElementById("shopBtn").onclick = () => {
+    shop.style.display = (shop.style.display === "block") ? "none" : "block";
+};
 
-function update(){
-    scoreText.textContent = "Очки: " + score;
+apple.onclick = (e) => {
 
-    shop.textContent = `Улучшение (+${damage}) — ${price}`;
-}
+    let gain = 1;
+    let isCrit = false;
 
-function showCrit(){
-    critText.style.opacity = 1;
+    // сброс окна 500 очков
+    if(windowPoints >= 500){
+        windowPoints = 0;
+        critUsed = 0;
+    }
 
-    setTimeout(() => {
-        critText.style.opacity = 0;
-    }, 1000);
-}
-
-apple.onclick = () => {
-    let gain = damage;
-
-    if(Math.random() < 0.10){
-        gain = 10;
-        showCrit();
+    // крит (редко + максимум 3 раза)
+    if(Math.random() < 0.03 && critUsed < 3){
+        gain = 5;
+        critUsed++;
+        isCrit = true;
     }
 
     score += gain;
-    save();
+    windowPoints += gain;
+
     update();
-};
 
-shop.onclick = () => {
-    if(score >= price){
-        score -= price;
+    // уменьшение яблока
+    apple.style.transform = "scale(0.85)";
+    setTimeout(()=> apple.style.transform = "scale(1)", 80);
 
-        damage++;
-
-        // после 25 урона рост становится быстрее
-        let add = damage > 25 ? 1 : 2;
-
-        price = Math.floor(price * 1.35 + add);
-
-        stage++;
-
-        save();
-        update();
+    // текст крита
+    if(isCrit){
+        let t = document.createElement("div");
+        t.className = "critText";
+        t.innerText = "КРИТ +" + gain;
+        t.style.left = e.pageX + "px";
+        t.style.top = e.pageY + "px";
+        document.body.appendChild(t);
+        setTimeout(()=>t.remove(),1000);
     }
 };
+
+function buySkin(){
+    if(score >= 2500 && !skinBought){
+        score -= 2500;
+        skinBought = true;
+
+        apple.innerText = "🍏";
+        apple.style.filter = "brightness(1.8) grayscale(1)";
+        update();
+    }
+}
+
+function update(){
+    scoreEl.textContent = score;
+}
 
 update();
 </script>
 
 </body>
+</html>
