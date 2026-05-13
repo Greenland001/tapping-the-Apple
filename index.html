@@ -2,6 +2,8 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <!-- Этот тег запрещает пользователю менять масштаб (зумить) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Apple Clicker</title>
     <style>
         body {
@@ -13,7 +15,10 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
+            /* Запрещаем выделение текста и прокрутку */
             user-select: none;
+            overflow: hidden;
+            touch-action: manipulation;
         }
 
         #score-container {
@@ -26,7 +31,9 @@
         #apple {
             width: 200px;
             cursor: pointer;
-            transition: transform 0.1s;
+            transition: transform 0.05s;
+            /* Предотвращает стандартные действия браузера при долгом нажатии */
+            -webkit-tap-highlight-color: transparent;
         }
 
         #apple:active {
@@ -40,19 +47,22 @@
             border-radius: 15px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             text-align: center;
+            width: 250px;
         }
 
         .upgrade-btn {
             background-color: #4CAF50;
             border: none;
             color: white;
-            padding: 15px 32px;
+            padding: 15px;
+            width: 100%;
             text-align: center;
             font-size: 16px;
-            margin: 4px 2px;
+            margin: 10px 0;
             cursor: pointer;
             border-radius: 8px;
             transition: background 0.3s;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .upgrade-btn:disabled {
@@ -71,65 +81,52 @@
 
     <div id="score-container">Очки: <span id="score">0</span></div>
     
-    <!-- Вместо картинки используем большое Эмодзи яблока -->
     <div id="apple" style="font-size: 150px; text-align: center;">🍎</div>
 
     <div id="shop">
-        <h3>Магазин улучшений</h3>
+        <h3>Магазин</h3>
         <button id="upgradeBtn" class="upgrade-btn">
             Улучшить клик (+1)
         </button>
-        <div class="info">Цена: <span id="upgradeCost">10</span> очков</div>
-        <div class="info">Сейчас за клик: <span id="clickPower">1</span></div>
+        <div class="info">Цена: <span id="upgradeCost">10</span></div>
+        <div class="info">Сила клика: <span id="clickPower">1</span></div>
     </div>
 
     <script>
-        // Начальные данные
         let score = 0;
         let clickPower = 1;
         let upgradeCost = 10;
 
-        // Элементы страницы
         const scoreDisplay = document.getElementById('score');
         const apple = document.getElementById('apple');
         const upgradeBtn = document.getElementById('upgradeBtn');
         const upgradeCostDisplay = document.getElementById('upgradeCost');
         const clickPowerDisplay = document.getElementById('clickPower');
 
-        // Функция обновления текста на экране
         function updateDisplay() {
             scoreDisplay.innerText = Math.floor(score);
             upgradeCostDisplay.innerText = upgradeCost;
             clickPowerDisplay.innerText = clickPower;
-            
-            // Если денег не хватает, кнопка становится серой
-            if (score < upgradeCost) {
-                upgradeBtn.disabled = true;
-            } else {
-                upgradeBtn.disabled = false;
-            }
+            upgradeBtn.disabled = score < upgradeCost;
         }
 
-        // Клик по яблоку
-        apple.addEventListener('click', () => {
+        apple.addEventListener('click', (e) => {
+            // Предотвращаем стандартное поведение (на всякий случай)
+            e.preventDefault();
             score += clickPower;
             updateDisplay();
         });
 
-        // Покупка улучшения
         upgradeBtn.addEventListener('click', () => {
             if (score >= upgradeCost) {
                 score -= upgradeCost;
-                clickPower += 1; // Увеличиваем силу клика
-                upgradeCost = Math.round(upgradeCost * 1.5); // Цена растет в 1.5 раза
+                clickPower += 1;
+                upgradeCost = Math.round(upgradeCost * 1.6);
                 updateDisplay();
             }
         });
 
-        // Запускаем проверку кнопок сразу
         updateDisplay();
     </script>
 </body>
 </html>
-
-
