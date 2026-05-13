@@ -336,50 +336,23 @@ save();
 
 /* SKINS */
 function apply(s){
-function apply(s){
 
 let a=document.getElementById("apple");
-a.className="skin"; // сброс
 
-if(s==="green"){
-a.innerText="🍏";
-a.classList.add("green");
-}
+a.className="skin";
 
-else if(s==="blue"){
-a.innerText="🍎";
-a.classList.add("blue");
-}
+if(s==="green"){a.innerText="🍏"; a.classList.add("green");}
+else if(s==="blue"){a.innerText="🍎"; a.classList.add("blue");}
+else if(s==="dark"){a.innerText="🍎"; a.classList.add("dark");}
+else if(s==="white"){a.innerText="🍎"; a.classList.add("white");}
+else if(s==="matrix"){a.innerText="🍎"; a.classList.add("matrix");}
+else if(s==="demon"){a.innerText="🍎"; a.classList.add("demon");}
+else if(s==="banana"){a.innerText="🍌"; a.classList.add("banana");}
+else if(s==="gold"){a.innerText="🍎"; a.classList.add("gold");}
 
-else if(s==="dark"){
-a.innerText="🍎";
-a.classList.add("dark");
-}
-
-else if(s==="white"){
-a.innerText="🍎";
-a.classList.add("white");
-}
-
-else if(s==="matrix"){
-a.innerText="🍎";
-a.classList.add("matrix");
-}
-
-else if(s==="demon"){
-a.innerText="🍎";
-a.classList.add("demon");
-}
-
-else if(s==="banana"){
-a.innerText="🍌";
-a.classList.add("banana");
-}
-
-else if(s==="gold"){
-a.innerText="🍎";
-a.classList.add("gold");
-}
+current=s;
+save();
+ }
 
 current=s;
 save();
