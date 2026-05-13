@@ -3,22 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apple Clicker: Ultra Pro</title>
+    <title>Apple Clicker: OS Edition</title>
     <style>
         :root {
             --accent: #f1c40f;
             --glass: rgba(255, 255, 255, 0.08);
-            --border: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.12);
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, sans-serif;
-            /* Стильный глубокий фон */
-            background: radial-gradient(circle at center, #1e272e 0%, #050505 100%);
-            color: white;
-            display: flex; flex-direction: column; align-items: center;
-            height: 100vh; margin: 0; overflow: hidden;
-            user-select: none; touch-action: none;
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background: radial-gradient(circle at center, #1e272e 0%, #000 100%);
+            color: white; display: flex; flex-direction: column; align-items: center;
+            height: 100vh; margin: 0; overflow: hidden; user-select: none; touch-action: none;
         }
 
         @keyframes rainbow {
@@ -28,218 +25,186 @@
         }
         .rainbow-skin { animation: rainbow 3s linear infinite !important; }
 
-        /* Тот самый прямоугольник для очков */
+        /* Панель счета */
         #score-panel {
-            margin-top: 50px;
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            padding: 25px 50px;
-            border-radius: 30px;
-            border: 1px solid var(--border);
-            text-align: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            min-width: 220px;
+            margin-top: 40px; background: var(--glass); backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px); padding: 20px 40px; border-radius: 25px;
+            border: 1px solid var(--border); text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
         }
 
-        #score { 
-            font-size: 60px; 
-            font-weight: 900; 
-            color: var(--accent); 
-            display: block;
-            text-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
-        }
-
-        #auto-info {
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 14px;
-            margin-top: 5px;
-            letter-spacing: 1px;
-        }
+        #score { font-size: 50px; font-weight: 900; color: var(--accent); display: block; line-height: 1; margin-bottom: 10px; }
+        .stats { display: flex; gap: 15px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
+        .stats b { color: #fff; }
 
         #apple {
-            font-size: 170px; cursor: pointer; transition: transform 0.07s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin: 40px 0; display: inline-block; touch-action: manipulation;
-            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+            font-size: 150px; cursor: pointer; transition: transform 0.05s;
+            margin: 40px 0; display: inline-block;
         }
-        #apple:active { transform: scale(0.9); }
+        #apple:active { transform: scale(0.92); }
 
-        .upg-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 350px; }
-        .upg-btn {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            color: white; padding: 18px;
-            border-radius: 20px; font-size: 14px;
-            transition: 0.2s;
+        /* Админ-панель (Окно) */
+        #admin-modal {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
+            background: rgba(20, 20, 20, 0.95); padding: 30px; border-radius: 25px;
+            border: 2px solid var(--accent); z-index: 1000; display: none;
+            flex-direction: column; gap: 15px; width: 280px; text-align: center;
+            box-shadow: 0 0 50px rgba(241, 196, 15, 0.3); transition: 0.3s;
         }
-        .upg-btn:active { background: rgba(255,255,255,0.15); transform: translateY(2px); }
-        .upg-btn:disabled { opacity: 0.2; transform: none; }
+        #admin-modal.show { display: flex; transform: translate(-50%, -50%) scale(1); }
 
-        /* Магазин (Свайп-панель) */
+        .admin-btn {
+            padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer;
+        }
+
+        /* Остальное */
+        .upg-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 90%; max-width: 360px; }
+        .upg-btn { background: var(--glass); border: 1px solid var(--border); color: white; padding: 15px; border-radius: 18px; }
+        .upg-btn:disabled { opacity: 0.2; }
+
         #shop-panel {
-            position: fixed; top: 0; right: -100%; width: 90%; height: 100%;
-            background: #111; transition: 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 300;
-            display: flex; flex-direction: column; padding: 30px 20px; box-sizing: border-box;
-            border-left: 1px solid var(--border);
+            position: fixed; top: 0; right: -100%; width: 85%; height: 100%;
+            background: #111; transition: 0.4s; z-index: 500; padding: 25px; box-sizing: border-box;
         }
         #shop-panel.open { right: 0; }
-
-        .skins-list { overflow-y: auto; flex-grow: 1; margin-top: 20px; }
-        .skin-card {
-            background: rgba(255,255,255,0.03); border-left: 6px solid; margin-bottom: 15px;
-            padding: 15px; display: flex; align-items: center; border-radius: 15px;
-        }
-        .skin-preview { font-size: 35px; margin-right: 20px; width: 50px; text-align: center; }
-        .buy-skin-btn { 
-            background: var(--accent); color: #000; border: none; padding: 12px 18px; 
-            border-radius: 12px; font-weight: bold; font-size: 14px;
-        }
-
-        #secret-trigger { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 1000; }
-        .swipe-hint { color: rgba(255,255,255,0.15); font-size: 11px; margin-top: 20px; text-transform: uppercase; letter-spacing: 2px; }
+        .skins-list { overflow-y: auto; flex-grow: 1; }
+        .skin-card { background: rgba(255,255,255,0.05); margin-bottom: 10px; padding: 12px; border-radius: 12px; display: flex; align-items: center; }
+        
+        #admin-trigger { position: fixed; top: 0; left: 0; width: 70px; height: 70px; z-index: 999; }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
 
-    <div id="secret-trigger" onclick="handleSecret('corner')"></div>
+    <div id="admin-trigger" onclick="adminStep('corner')"></div>
+
+    <!-- Админ Окно -->
+    <div id="admin-modal">
+        <h3 style="margin: 0 0 10px 0; color: var(--accent);">ADMIN PANEL</h3>
+        <button class="admin-btn" style="background: #2ecc71;" onclick="cheat(1000000)">+1,000,000 Яблок</button>
+        <button class="admin-btn" style="background: #e74c3c; color: white;" onclick="resetGame()">СБРОСИТЬ ВСЁ</button>
+        <button class="admin-btn" style="background: #333; color: white;" onclick="closeAdmin()">ЗАКРЫТЬ</button>
+    </div>
+
+    <audio id="bg-music" loop>
+        <source src="https://actions.google.com/static/audio/libs/relaxing_sounds/ambience_relaxing_waves.mp3" type="audio/mpeg">
+    </audio>
 
     <div id="score-panel">
         <span id="score">0</span>
-        <div id="auto-info">ДОХОД: <span id="auto-val">0</span>/СЕК</div>
+        <div class="stats">
+            <div>Клик: <b id="ui-click">1</b></div>
+            <div>Секунда: <b id="ui-auto">0</b></div>
+        </div>
     </div>
 
-    <div id="apple" onclick="handleSecret('apple')">🍎</div>
+    <div id="apple" onclick="adminStep('apple')">🍎</div>
 
     <div class="upg-buttons">
-        <button class="upg-btn" id="btn-click" onclick="buyUpgrade('click')">КЛИК<br><b id="cost-click">15</b></button>
-        <button class="upg-btn" id="btn-auto" onclick="buyUpgrade('auto')">ФЕРМА<br><b id="cost-auto">50</b></button>
+        <button class="upg-btn" id="btn-click">КЛИК<br><b id="c-cost">15</b></button>
+        <button class="upg-btn" id="btn-auto">ФЕРМА<br><b id="a-cost">50</b></button>
     </div>
 
-    <div class="swipe-hint">← СВАЙП ДЛЯ МАГАЗИНА</div>
-
     <div id="shop-panel">
-        <h2 style="color: var(--accent); margin: 0; text-align: center;">МАГАЗИН</h2>
-        <p style="color: #444; font-size: 12px; text-align: center; margin-bottom: 20px;">СВАЙП ВПРАВО → ВЫХОД</p>
+        <h2 style="color: var(--accent); text-align: center;">МАГАЗИН</h2>
         <div class="skins-list" id="skins-list"></div>
+        <button onclick="toggleShop(false)" style="width:100%; padding:10px; margin-top:10px; background:#222; border:none; color:#777; border-radius:10px;">НАЗАД</button>
     </div>
 
     <script>
-        (function() {
-            let state = {
-                score: 0, clickPower: 1, clickCost: 15,
-                autoPower: 0, autoCost: 50,
-                ownedSkins: ['default'], currentFilter: 'none'
-            };
+        let game = { score: 0, clickP: 1, clickC: 15, autoP: 0, autoC: 50, owned: ['default'], filter: 'none' };
 
-            const skins = [
-                { id: 'default', name: 'Обычное', rarity: 'Common', price: 0, filter: 'none', color: '#fff' },
-                { id: 'green', name: 'Зеленое', rarity: 'Common', price: 1500, filter: 'hue-rotate(100deg)', color: '#fff' },
-                { id: 'dark', name: 'Темное', rarity: 'Common', price: 2000, filter: 'brightness(0.15)', color: '#fff' },
-                { id: 'blood', name: 'Кровавое', rarity: 'Rare', price: 5000, filter: 'hue-rotate(300deg) brightness(0.6)', color: '#2ecc71' },
-                { id: 'dirty', name: 'Грязное', rarity: 'Rare', price: 6500, filter: 'sepia(0.8) brightness(0.6) hue-rotate(-20deg)', color: '#2ecc71' },
-                { id: 'small', name: 'Маленькое', rarity: 'Rare', price: 8000, filter: 'scale(0.6)', color: '#2ecc71' },
-                { id: 'ice', name: 'Ледяное', rarity: 'Epic', price: 35500, filter: 'hue-rotate(190deg) brightness(1.5)', color: '#9b59b6' },
-                { id: 'matrix', name: 'Матрица', rarity: 'Epic', price: 25000, filter: 'hue-rotate(120deg) brightness(1.5) drop-shadow(0 0 10px green)', color: '#9b59b6' },
-                { id: 'gold', name: 'Золотое', rarity: 'Mythic', price: 60000, filter: 'sepia(1) saturate(5) brightness(1) hue-rotate(-10deg)', color: '#e74c3c' },
-                { id: 'diamond', name: 'Алмазное', rarity: 'Mythic', price: 90000, filter: 'hue-rotate(180deg) brightness(1.8) saturate(0.5)', color: '#e74c3c' },
-                { id: 'rainbow', name: 'Радужное', rarity: 'Legendary', price: 130000, filter: 'rainbow', color: '#f1c40f' }
-            ];
+        const skins = [
+            { id: 'default', name: 'Обычное', price: 0, f: 'none', c: '#fff' },
+            { id: 'green', name: 'Зеленое', price: 1500, f: 'hue-rotate(100deg)', c: '#2ecc71' },
+            { id: 'dark', name: 'Темное', price: 2000, f: 'brightness(0.2)', c: '#555' },
+            { id: 'blood', name: 'Кровавое', price: 5000, f: 'hue-rotate(300deg) brightness(0.6)', c: '#e74c3c' },
+            { id: 'dirty', name: 'Грязное', price: 6500, f: 'sepia(0.8) brightness(0.6)', c: '#795548' },
+            { id: 'small', name: 'Маленькое', price: 8000, f: 'scale(0.6)', c: '#ff9800' },
+            { id: 'ice', name: 'Ледяное', price: 35500, f: 'hue-rotate(190deg) brightness(1.5)', c: '#03a9f4' },
+            { id: 'matrix', name: 'Матрица', price: 25000, f: 'hue-rotate(120deg) drop-shadow(0 0 10px green)', c: '#4caf50' },
+            { id: 'gold', name: 'Золотое', price: 60000, f: 'sepia(1) saturate(5) brightness(1)', c: '#f1c40f' },
+            { id: 'diamond', name: 'Алмазное', price: 90000, f: 'hue-rotate(180deg) brightness(1.8)', c: '#e1f5fe' },
+            { id: 'rainbow', name: 'Радужное', price: 130000, f: 'rainbow', c: '#f1c40f' }
+        ];
 
-            // Свайпы
-            let startX = 0;
-            document.addEventListener('touchstart', e => startX = e.touches[0].clientX);
-            document.addEventListener('touchend', e => {
-                let diff = startX - e.changedTouches[0].clientX;
-                if (diff > 80) document.getElementById('shop-panel').classList.add('open');
-                if (diff < -80) document.getElementById('shop-panel').classList.remove('open');
+        function updateUI() {
+            document.getElementById('score').innerText = Math.floor(game.score);
+            document.getElementById('ui-click').innerText = "+" + game.clickP;
+            document.getElementById('ui-auto').innerText = "+" + game.autoP;
+            document.getElementById('c-cost').innerText = game.clickC;
+            document.getElementById('a-cost').innerText = game.autoC;
+            document.getElementById('btn-click').disabled = game.score < game.clickC;
+            document.getElementById('btn-auto').disabled = game.score < game.autoC;
+            
+            const apple = document.getElementById('apple');
+            apple.className = (game.filter === 'rainbow') ? 'rainbow-skin' : '';
+            apple.style.filter = (game.filter === 'rainbow') ? '' : game.filter;
+
+            renderSkins();
+            localStorage.setItem('apple_v6_save', JSON.stringify(game));
+        }
+
+        function renderSkins() {
+            const list = document.getElementById('skins-list');
+            list.innerHTML = '';
+            skins.forEach(s => {
+                const isOwned = game.owned.includes(s.id);
+                const card = document.createElement('div');
+                card.className = 'skin-card';
+                card.innerHTML = `
+                    <div style="font-size:30px; margin-right:15px; filter:${s.f === 'rainbow' ? '' : s.f}" class="${s.f==='rainbow'?'rainbow-skin':''}">🍎</div>
+                    <div style="flex-grow:1"><b>${s.name}</b></div>
+                    <button onclick="handleSkin('${s.id}')" style="background:${isOwned?'#333': 'var(--accent)'}; border:none; padding:8px; border-radius:8px; font-weight:bold;">
+                        ${isOwned ? (game.filter === s.f ? 'Надето' : 'Выбрать') : s.price}
+                    </button>`;
+                list.appendChild(card);
             });
+        }
 
-            function updateUI() {
-                document.getElementById('score').innerText = Math.floor(state.score);
-                document.getElementById('auto-val').innerText = state.autoPower;
-                document.getElementById('cost-click').innerText = state.clickCost;
-                document.getElementById('cost-auto').innerText = state.autoCost;
-                
-                document.getElementById('btn-click').disabled = state.score < state.clickCost;
-                document.getElementById('btn-auto').disabled = state.score < state.autoCost;
-                
-                renderSkins();
-                localStorage.setItem('apple_ultra_save', JSON.stringify(state));
-            }
-
-            function renderSkins() {
-                const list = document.getElementById('skins-list');
-                list.innerHTML = '';
-                skins.forEach(s => {
-                    const isOwned = state.ownedSkins.includes(s.id);
-                    const card = document.createElement('div');
-                    card.className = 'skin-card';
-                    card.style.borderLeftColor = s.color;
-                    
-                    let pClass = (s.filter === 'rainbow') ? 'skin-preview rainbow-skin' : 'skin-preview';
-                    let pFilter = (s.filter === 'rainbow') ? '' : s.filter;
-                    let btnTxt = isOwned ? (state.currentFilter === s.filter ? 'Надето' : 'Выбрать') : s.price;
-
-                    card.innerHTML = `
-                        <div class="${pClass}" style="filter:${pFilter}">🍎</div>
-                        <div style="flex-grow:1">
-                            <small style="color:${s.color}; font-size:10px;">${s.rarity}</small><br>
-                            <b>${s.name}</b>
-                        </div>
-                        <button class="buy-skin-btn" onclick="buySkin('${s.id}')" ${!isOwned && state.score < s.price ? 'disabled' : ''} 
-                                style="${isOwned ? 'background:#333; color:white;' : ''}">${btnTxt}</button>
-                    `;
-                    list.appendChild(card);
-                });
-            }
-
-            window.buyUpgrade = function(type) {
-                if (type === 'click' && state.score >= state.clickCost) {
-                    state.score -= state.clickCost; state.clickPower++;
-                    state.clickCost = Math.round(state.clickCost * 1.6);
-                } else if (type === 'auto' && state.score >= state.autoCost) {
-                    state.score -= state.autoCost; state.autoPower++;
-                    state.autoCost = Math.round(state.autoCost * 1.7);
-                }
-                updateUI();
-            };
-
-            window.buySkin = function(id) {
-                const s = skins.find(x => x.id === id);
-                if (state.ownedSkins.includes(id)) {
-                    state.currentFilter = s.filter;
-                } else if (state.score >= s.price) {
-                    state.score -= s.price; state.ownedSkins.push(id);
-                    state.currentFilter = s.filter;
-                }
-                applySkinEffect();
-                updateUI();
-            };
-
-            function applySkinEffect() {
-                const apple = document.getElementById('apple');
-                apple.className = (state.currentFilter === 'rainbow') ? 'rainbow-skin' : '';
-                apple.style.filter = (state.currentFilter === 'rainbow') ? '' : state.currentFilter;
-            }
-
-            document.getElementById('apple').addEventListener('pointerdown', () => {
-                state.score += state.clickPower;
-                updateUI();
-            });
-
-            // Секрет
-            let path = "";
-            window.handleSecret = function(t) {
-                path += (t === 'apple' ? 'A' : 'C');
-                if (path.includes("AAACC")) { state.score += 1000000; updateUI(); path = ""; }
-            };
-
-            setInterval(() => { if (state.autoPower > 0) { state.score += state.autoPower; updateUI(); } }, 1000);
-
-            const saved = JSON.parse(localStorage.getItem('apple_ultra_save'));
-            if (saved) { state = saved; applySkinEffect(); }
+        window.handleSkin = (id) => {
+            const s = skins.find(x => x.id === id);
+            if (game.owned.includes(id)) game.filter = s.f;
+            else if (game.score >= s.price) { game.score -= s.price; game.owned.push(id); game.filter = s.f; }
             updateUI();
-        })();
+        };
+
+        // Клики
+        document.getElementById('apple').onpointerdown = () => {
+            game.score += game.clickP; updateUI();
+            const m = document.getElementById('bg-music'); if(m.paused) m.play();
+        };
+
+        // Улучшения
+        document.getElementById('btn-click').onclick = () => {
+            if (game.score >= game.clickC) { game.score -= game.clickC; game.clickP++; game.clickC = Math.round(game.clickC * 1.6); updateUI(); }
+        };
+        document.getElementById('btn-auto').onclick = () => {
+            if (game.score >= game.autoC) { game.score -= game.autoC; game.autoP++; game.autoC = Math.round(game.autoC * 1.7); updateUI(); }
+        };
+
+        // Админка
+        let combo = "";
+        window.adminStep = (t) => {
+            combo += (t === 'corner' ? 'C' : 'A');
+            if (combo.endsWith("CCCAA")) { document.getElementById('admin-modal').classList.add('show'); combo = ""; }
+        };
+        window.cheat = (n) => { game.score += n; updateUI(); };
+        window.resetGame = () => { if(confirm("Сбросить всё?")){ localStorage.clear(); location.reload(); } };
+        window.closeAdmin = () => document.getElementById('admin-modal').classList.remove('show');
+
+        // Свайпы
+        let sX = 0;
+        document.ontouchstart = e => sX = e.touches[0].clientX;
+        document.ontouchend = e => {
+            let d = sX - e.changedTouches[0].clientX;
+            if (d > 80) toggleShop(true); if (d < -80) toggleShop(false);
+        };
+        function toggleShop(o) { document.getElementById('shop-panel').classList.toggle('open', o); }
+
+        setInterval(() => { if (game.autoP > 0) { game.score += game.autoP; updateUI(); } }, 1000);
+
+        const saved = JSON.parse(localStorage.getItem('apple_v6_save'));
+        if (saved) game = {...game, ...saved};
+        updateUI();
     </script>
 </body>
 </html>
