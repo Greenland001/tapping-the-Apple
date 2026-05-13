@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apple Clicker 4.0</title>
+<title>Apple Clicker 6.1</title>
 
 <style>
 html,body{
@@ -14,11 +14,7 @@ font-family:Arial;
 background:#151520;
 color:white;
 }
-*{
-user-select:none;
--webkit-user-select:none;
--ms-user-select:none;
-}
+
 .game{
 height:100%;
 display:flex;
@@ -75,24 +71,30 @@ border-radius:10px;
 text-align:center;
 }
 
-/* RARITY BAR */
+/* RARITY */
 .rarityBar{
 display:flex;
-justify-content:space-between;
-font-size:12px;
+gap:5px;
+font-size:11px;
 margin-bottom:10px;
-padding:5px;
-border-radius:8px;
-background:#1a1a2a;
 }
 
-.r1{color:#ccc;}
-.r2{color:lime;}
-.r3{color:#4da3ff;}
-.r4{color:red;}
-.r5{color:gold;}
+.rarity{
+flex:1;
+padding:6px;
+border-radius:8px;
+background:#1a1a2a;
+cursor:pointer;
+user-select:none;
+}
 
-/* SHOP GRID */
+.r1{border:1px solid #aaa;}
+.r2{border:1px solid lime;}
+.r3{border:1px solid #4da3ff;}
+.r4{border:1px solid red;}
+.r5{border:1px solid gold;}
+
+/* GRID */
 .skinGrid{
 display:grid;
 grid-template-columns:1fr 1fr;
@@ -117,8 +119,8 @@ transform:scale(1.05);
 .blue{color:#4da3ff;}
 .dark{color:#333;}
 .white{color:white;}
-.banana{color:#ffd84d;}
-.demon{color:red;text-shadow:0 0 8px red;}
+.matrix{color:#00ff66;}
+.demon{color:red;}
 .gold{color:gold;}
 
 </style>
@@ -152,26 +154,28 @@ transform:scale(1.05);
 <div class="shopBox">
 
 <div class="rarityBar">
-<span class="r1">Обычный</span>
-<span class="r2">Редкий</span>
-<span class="r3">Сверхредкий</span>
-<span class="r4">Мифический</span>
-<span class="r5">Легендарный</span>
+<div class="rarity" onclick="filter('all')">Все</div>
+<div class="rarity" onclick="filter('common')">Обычные</div>
+<div class="rarity" onclick="filter('rare')">Редкие</div>
+<div class="rarity" onclick="filter('super')">Сверхредкие</div>
+<div class="rarity" onclick="filter('mythic')">Мифические</div>
+<div class="rarity" onclick="filter('legendary')">Легендарные</div>
 </div>
 
 <div class="skinGrid">
 
-<div class="skinCard" onclick="buy('green',1000)">🟢 Зелёный</div>
-<div class="skinCard" onclick="buy('blue',2000)">🔵 Синий</div>
+<div class="skinCard" data-rarity="common" onclick="buy('green',1000)">🟢 Зелёный</div>
+<div class="skinCard" data-rarity="common" onclick="buy('blue',2000)">🔵 Синий</div>
 
-<div class="skinCard" onclick="buy('dark',5000)">⚫ Тёмный</div>
-<div class="skinCard" onclick="buy('white',5000)">⚪ Белый</div>
+<div class="skinCard" data-rarity="rare" onclick="buy('dark',5000)">⚫ Тёмный</div>
+<div class="skinCard" data-rarity="rare" onclick="buy('white',5000)">⚪ Белый</div>
 
-<div class="skinCard" onclick="buy('banana',15000)">🍌 Банановый</div>
+<div class="skinCard" data-rarity="super" onclick="buy('matrix',15000)">🟩 Матрица</div>
 
-<div class="skinCard" onclick="buy('demon',50000)">🔥 Адский</div>
+<div class="skinCard" data-rarity="mythic" onclick="buy('demon',50000)">🔥 Адский</div>
 
-<div class="skinCard" onclick="buy('gold',100000)">🥇 Золотой</div>
+<div class="skinCard" data-rarity="legendary" onclick="buy('banana',100000)">🍌 Банановый</div>
+<div class="skinCard" data-rarity="legendary" onclick="buy('gold',150000)">🥇 Золотой</div>
 
 </div>
 
@@ -187,7 +191,7 @@ let damage=1;
 let cost=50;
 
 let owned={
-green:false,blue:false,dark:false,white:false,banana:false,demon:false,gold:false
+green:false,blue:false,dark:false,white:false,matrix:false,demon:false,banana:false,gold:false
 };
 
 let current="green";
@@ -203,7 +207,6 @@ localStorage.setItem("current",current);
 
 /* LOAD */
 function load(){
-
 let s=localStorage.getItem("score");
 let d=localStorage.getItem("damage");
 let c=localStorage.getItem("cost");
@@ -229,7 +232,6 @@ document.getElementById("cost").textContent=cost;
 
 /* CLICK */
 document.getElementById("apple").onclick=()=>{
-
 score+=damage;
 update();
 save();
@@ -286,19 +288,41 @@ save();
 function apply(s){
 
 let a=document.getElementById("apple");
-
 a.className="";
 
 if(s==="green"){a.innerText="🍏";a.classList.add("green");}
 if(s==="blue"){a.innerText="🍎";a.classList.add("blue");}
 if(s==="dark"){a.innerText="🍎";a.classList.add("dark");}
 if(s==="white"){a.innerText="🍎";a.classList.add("white");}
-if(s==="banana"){a.innerText="🍌";a.classList.add("banana");}
+if(s==="matrix"){a.innerText="🍎";a.classList.add("matrix");}
 if(s==="demon"){a.innerText="🍎";a.classList.add("demon");}
+if(s==="banana"){a.innerText="🍌";a.classList.add("gold");}
 if(s==="gold"){a.innerText="🍎";a.classList.add("gold");}
 
 current=s;
 save();
+}
+
+/* FILTER */
+function filter(type){
+
+let cards=document.querySelectorAll(".skinCard");
+
+cards.forEach(c=>{
+
+if(type==="all"){
+c.style.display="block";
+return;
+}
+
+if(c.getAttribute("data-rarity")===type){
+c.style.display="block";
+}else{
+c.style.display="none";
+}
+
+});
+
 }
 
 load();
