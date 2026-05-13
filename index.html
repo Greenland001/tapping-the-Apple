@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
-<title>Apple Game</title>
+<title>Apple Skins</title>
 
 <style>
 html, body{
@@ -12,7 +12,7 @@ html, body{
     height:100%;
     overflow:hidden;
     font-family:Arial;
-    background: radial-gradient(circle at top, #2b2b45, #151520);
+    background:#151520;
     color:white;
 }
 
@@ -25,28 +25,21 @@ html, body{
     text-align:center;
 }
 
-h1{
-    margin:10px;
-    opacity:0.9;
-}
-
 #apple{
     font-size:120px;
     cursor:pointer;
     user-select:none;
-    transition:transform 0.08s, filter 0.2s;
-    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.4));
+    transition:transform 0.1s, filter 0.3s;
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
 }
 
-#apple.click{
-    transform:scale(0.92);
-}
+#apple.click{ transform:scale(0.92); }
 
 .panel{
     background:#2c2c44;
     padding:10px;
     margin-top:10px;
-    width:260px;
+    width:280px;
     border-radius:10px;
 }
 
@@ -55,202 +48,186 @@ button{
     border:none;
     border-radius:8px;
     cursor:pointer;
+    margin-top:6px;
+    width:100%;
+}
+
+#status{
+    font-size:12px;
+    opacity:0.7;
     margin-top:5px;
 }
 
-#shopBtn{
+#fallSkin{
     position:fixed;
-    top:10px;
-    right:10px;
-    font-size:24px;
-    background:#2c2c44;
-    border:none;
-    border-radius:8px;
-    padding:8px;
-}
-
-#shop{ display:none; }
-
-.dmgText{
-    position:absolute;
-    font-weight:bold;
-    color:#66ccff;
-    animation:fly 0.6s forwards;
+    top:-150px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:90px;
+    transition:top 0.8s ease;
     pointer-events:none;
+    filter:drop-shadow(0 10px 10px rgba(0,0,0,0.5));
 }
 
-@keyframes fly{
-    0%{opacity:1; transform:translate(0,0);}
-    100%{opacity:0; transform:translate(var(--x), var(--y));}
-}
+/* эффекты */
+.greenGlow{ filter:drop-shadow(0 0 10px lime); }
+.blackGlow{ filter:drop-shadow(0 0 10px purple) brightness(0.7); }
+.goldGlow{ filter:drop-shadow(0 0 15px gold) brightness(1.4); }
 </style>
 </head>
 
 <body>
 
-<button id="shopBtn">🛒</button>
+<div id="fallSkin"></div>
 
 <div class="game">
-
-    <h1>🍎 Apple Clicker</h1>
 
     <div id="apple">🍎</div>
 
     <div class="panel">
         <div>Очки: <span id="score">0</span></div>
-        <div>Урон: <span id="damage">1</span></div>
     </div>
 
     <div class="panel">
-        <div>Улучшение</div>
-        <div>Цена: <span id="cost">50</span></div>
-        <button onclick="upgradeDamage()">+1 урон</button>
-    </div>
+        <div>Скины</div>
 
-    <div class="panel" id="shop">
-        <button onclick="buySkin()">Белое яблоко (2500)</button>
+        <button onclick="buySkin('green')">🟢 Зелёное (1000)</button>
+        <button onclick="buySkin('black')">🌙 Ночное (5000)</button>
+        <button onclick="buySkin('gold')">🥇 Золотое (100000)</button>
+
+        <div id="status">Белое — куплено</div>
     </div>
 
 </div>
 
 <script>
-let score = 0;
-let damage = 1;
-let cost = 50;
-let skinBought = false;
+let score=0;
 
-const apple = document.getElementById("apple");
-const scoreEl = document.getElementById("score");
-const dmgEl = document.getElementById("damage");
-const costEl = document.getElementById("cost");
-const shop = document.getElementById("shop");
-
-/* ======================
-   💾 Сохранение
-====================== */
-function saveGame(){
-    localStorage.setItem("score", score);
-    localStorage.setItem("damage", damage);
-    localStorage.setItem("cost", cost);
-    localStorage.setItem("skin", skinBought);
-}
-
-function loadGame(){
-    let s = localStorage.getItem("score");
-    let d = localStorage.getItem("damage");
-    let c = localStorage.getItem("cost");
-    let sk = localStorage.getItem("skin");
-
-    if(s!==null) score=Number(s);
-    if(d!==null) damage=Number(d);
-    if(c!==null) cost=Number(c);
-    if(sk==="true"){
-        skinBought=true;
-        apple.innerText="🍏";
-        apple.style.filter="brightness(1.6) grayscale(1)";
-    }
-}
-
-/* ======================
-   🔊 мягкий звук "кус"
-====================== */
-let audioCtx;
-
-function biteSound(){
-    if(!audioCtx){
-        audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    }
-
-    let o = audioCtx.createOscillator();
-    let g = audioCtx.createGain();
-
-    o.type = "triangle";
-    o.frequency.value = 180 + Math.random()*40; // мягкий "кус"
-
-    g.gain.value = 0.05;
-
-    o.connect(g);
-    g.connect(audioCtx.destination);
-
-    o.start();
-
-    o.frequency.exponentialRampToValueAtTime(60, audioCtx.currentTime + 0.08);
-    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
-
-    o.stop(audioCtx.currentTime + 0.09);
-}
-
-/* ======================
-   🎮 игра
-====================== */
-document.getElementById("shopBtn").onclick=()=>{
-    shop.style.display = shop.style.display==="block"?"none":"block";
+let owned={
+    green:false,
+    black:false,
+    gold:false
 };
 
-apple.onclick=(e)=>{
+let currentSkin="white";
 
-    biteSound();
+const apple=document.getElementById("apple");
+const scoreEl=document.getElementById("score");
+const statusEl=document.getElementById("status");
+const fallSkin=document.getElementById("fallSkin");
 
-    score += damage;
-
-    apple.classList.add("click");
-    setTimeout(()=>apple.classList.remove("click"),80);
-
-    let t = document.createElement("div");
-    t.className = "dmgText";
-    t.innerText = "+" + damage;
-
-    let x = (Math.random()*80-40)+"px";
-    let y = (Math.random()*-80-20)+"px";
-
-    t.style.setProperty("--x",x);
-    t.style.setProperty("--y",y);
-
-    t.style.left=e.pageX+"px";
-    t.style.top=e.pageY+"px";
-
-    document.body.appendChild(t);
-    setTimeout(()=>t.remove(),600);
-
-    update();
-    saveGame();
-};
-
-function upgradeDamage(){
-    if(score >= cost){
-        score -= cost;
-        damage++;
-
-        cost = Math.floor(cost * 1.5 + 20);
-
-        update();
-        saveGame();
-    }
+/* ================= SAVE ================= */
+function save(){
+    localStorage.setItem("score",score);
+    localStorage.setItem("owned",JSON.stringify(owned));
+    localStorage.setItem("skin",currentSkin);
 }
 
-function buySkin(){
-    if(score >= 2500 && !skinBought){
-        score -= 2500;
-        skinBought = true;
+function load(){
+    let s=localStorage.getItem("score");
+    let o=localStorage.getItem("owned");
+    let sk=localStorage.getItem("skin");
 
-        apple.innerText="🍏";
-        apple.style.filter="brightness(1.6) grayscale(1)";
+    if(s) score=Number(s);
+    if(o) owned=JSON.parse(o);
+    if(sk) currentSkin=sk;
 
-        update();
-        saveGame();
-    }
+    applySkin(currentSkin);
 }
 
 function update(){
-    scoreEl.textContent = score;
-    dmgEl.textContent = damage;
-    costEl.textContent = cost;
+    scoreEl.textContent=score;
 }
 
-/* загрузка */
-loadGame();
+/* ================= FALL ANIMATION ================= */
+function spawnSkinFall(emoji){
+    fallSkin.innerText=emoji;
+    fallSkin.style.top="-150px";
+
+    setTimeout(()=>{
+        fallSkin.style.top="40%";
+    },50);
+
+    setTimeout(()=>{
+        fallSkin.style.top="-150px";
+    },900);
+}
+
+/* ================= SKINS ================= */
+function applySkin(skin){
+
+    apple.className="";
+
+    if(skin==="green"){
+        apple.innerText="🍏";
+        apple.classList.add("greenGlow");
+        statusEl.innerText="Зелёное — куплено";
+    }
+
+    if(skin==="black"){
+        apple.innerText="🍎";
+        apple.classList.add("blackGlow");
+        statusEl.innerText="Ночное — куплено";
+    }
+
+    if(skin==="gold"){
+        apple.innerText="🍎";
+        apple.classList.add("goldGlow");
+        statusEl.innerText="Золотое — куплено";
+    }
+
+    if(skin==="white"){
+        apple.innerText="🍎";
+        statusEl.innerText="Белое — куплено";
+    }
+
+    currentSkin=skin;
+    save();
+}
+
+/* ================= BUY ================= */
+function buySkin(type){
+
+    if(type==="green" && score>=1000){
+        score-=1000;
+        owned.green=true;
+
+        spawnSkinFall("🍏"); // 👈 прилетает сверху
+        setTimeout(()=>applySkin("green"),800);
+    }
+
+    if(type==="black" && score>=5000){
+        score-=5000;
+        owned.black=true;
+
+        spawnSkinFall("🌙");
+        setTimeout(()=>applySkin("black"),800);
+    }
+
+    if(type==="gold" && score>=100000){
+        score-=100000;
+        owned.gold=true;
+
+        spawnSkinFall("🥇");
+        setTimeout(()=>applySkin("gold"),800);
+    }
+
+    update();
+    save();
+}
+
+/* ================= CLICK ================= */
+apple.onclick=()=>{
+
+    score+=1;
+    update();
+    save();
+};
+
+/* start */
+load();
 update();
 </script>
 
 </body>
-</html>        
+</html>
