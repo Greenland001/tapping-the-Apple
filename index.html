@@ -3,48 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apple Clicker 6.1</title>
+<title>Apple Clicker FIX</title>
 
 <style>
-html, body {
-user-select: none;
--webkit-user-select: none;
--ms-user-select: none;
--webkit-touch-callout: none;
-}
-
-* {
-user-select: none;
--webkit-user-select: none;
--ms-user-select: none;
--webkit-touch-callout: none;
-}
-.skin{
-font-size:120px;
-transition:0.2s;
-}
-
-.green{color:lime;}
-.blue{color:#4da3ff;}
-.dark{color:#333;}
-.white{color:white;}
-.matrix{color:#00ff66;}
-.demon{color:red;}
-.banana{color:#ffd84d;}
-.gold{color:gold;}
-* {
-user-select: none;
--webkit-user-select: none;
--ms-user-select: none;
--webkit-touch-callout: none;
-}
-html,body{
+html, body{
 margin:0;
 height:100%;
-overflow:hidden;
 font-family:Arial;
 background:#151520;
 color:white;
+user-select:none;
+-webkit-user-select:none;
+}
+
+*{
+user-select:none;
+-webkit-user-select:none;
+-webkit-touch-callout:none;
 }
 
 .game{
@@ -59,11 +34,12 @@ text-align:center;
 #apple{
 font-size:120px;
 cursor:pointer;
-user-select:none;
-transition:transform .08s;
+transition:0.1s;
 }
 
-#apple:active{transform:scale(0.92);}
+#apple:active{
+transform:scale(0.92);
+}
 
 .panel{
 background:#2c2c44;
@@ -78,8 +54,8 @@ padding:8px;
 border:none;
 border-radius:8px;
 cursor:pointer;
-margin-top:6px;
 width:100%;
+margin-top:5px;
 }
 
 /* SHOP */
@@ -89,9 +65,8 @@ bottom:0;
 left:0;
 width:100%;
 background:#111;
-padding:10px;
 display:none;
-z-index:10;
+padding:10px;
 }
 
 .shopBox{
@@ -103,57 +78,50 @@ border-radius:10px;
 text-align:center;
 }
 
-/* RARITY */
-.rarityBar{
-display:flex;
-gap:5px;
-font-size:11px;
-margin-bottom:10px;
-}
-
-.rarity{
-flex:1;
-padding:6px;
-border-radius:8px;
-background:#1a1a2a;
-cursor:pointer;
-user-select:none;
-}
-
-.r1{border:1px solid #aaa;}
-.r2{border:1px solid lime;}
-.r3{border:1px solid #4da3ff;}
-.r4{border:1px solid red;}
-.r5{border:1px solid gold;}
-
-/* GRID */
-.skinGrid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-}
-
-.skinCard{
-background:#1f1f33;
-padding:10px;
-border-radius:12px;
-cursor:pointer;
-transition:0.2s;
-user-select:none;
-}
-
-.skinCard:hover{
-transform:scale(1.05);
-}
-
 /* SKINS */
+.skin{font-size:120px;}
+
 .green{color:lime;}
 .blue{color:#4da3ff;}
 .dark{color:#333;}
 .white{color:white;}
 .matrix{color:#00ff66;}
 .demon{color:red;}
+.banana{color:#ffd84d;}
 .gold{color:gold;}
+
+.skinGrid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+margin-top:10px;
+}
+
+.skinCard{
+background:#1f1f33;
+padding:10px;
+border-radius:10px;
+cursor:pointer;
+}
+
+.skinCard small{
+opacity:0.7;
+}
+
+.rarityBar{
+display:flex;
+gap:5px;
+margin-bottom:10px;
+}
+
+.rarity{
+flex:1;
+padding:5px;
+background:#1a1a2a;
+border-radius:6px;
+cursor:pointer;
+font-size:11px;
+}
 
 </style>
 </head>
@@ -170,9 +138,9 @@ transform:scale(1.05);
 </div>
 
 <div class="panel">
-<b>Улучшение клика</b><br>
+<b>Улучшение</b><br>
 Цена: <span id="cost">50</span><br>
-<button onclick="upgrade()">+1 урон</button>
+<button onclick="upgrade()">Купить</button>
 </div>
 
 <div class="panel">
@@ -195,38 +163,20 @@ transform:scale(1.05);
 </div>
 
 <div class="skinGrid">
-<div class="skinCard" data-rarity="common" onclick="buy('green',1000)">
-🟢 Зелёный<br><small>Цена: 1000</small>
-</div>
 
-<div class="skinCard" data-rarity="common" onclick="buy('blue',2000)">
-🔵 Синий<br><small>Цена: 2000</small>
-</div>
+<div class="skinCard" data-rarity="common" onclick="buy('green',1000)">🟢 Зелёный<br><small>1000</small></div>
+<div class="skinCard" data-rarity="common" onclick="buy('blue',2000)">🔵 Синий<br><small>2000</small></div>
 
-<div class="skinCard" data-rarity="rare" onclick="buy('dark',5000)">
-⚫ Тёмный<br><small>Цена: 5000</small>
-</div>
+<div class="skinCard" data-rarity="rare" onclick="buy('dark',5000)">⚫ Тёмный<br><small>5000</small></div>
+<div class="skinCard" data-rarity="rare" onclick="buy('white',5000)">⚪ Белый<br><small>5000</small></div>
 
-<div class="skinCard" data-rarity="rare" onclick="buy('white',5000)">
-⚪ Белый<br><small>Цена: 5000</small>
-</div>
+<div class="skinCard" data-rarity="super" onclick="buy('matrix',15000)">🟩 Матрица<br><small>15000</small></div>
 
-<div class="skinCard" data-rarity="super" onclick="buy('matrix',15000)">
-🟩 Матрица<br><small>Цена: 15000</small>
-</div>
+<div class="skinCard" data-rarity="mythic" onclick="buy('demon',50000)">🔥 Адский<br><small>50000</small></div>
 
-<div class="skinCard" data-rarity="mythic" onclick="buy('demon',50000)">
-🔥 Адский<br><small>Цена: 50000</small>
-</div>
+<div class="skinCard" data-rarity="legendary" onclick="buy('banana',100000)">🍌 Банановый<br><small>100000</small></div>
+<div class="skinCard" data-rarity="legendary" onclick="buy('gold',150000)">🥇 Золотой<br><small>150000</small></div>
 
-<div class="skinCard" data-rarity="legendary" onclick="buy('banana',100000)">
-🍌 Банановый<br><small>Цена: 100000</small>
-</div>
-
-<div class="skinCard" data-rarity="legendary" onclick="buy('gold',150000)">
-🥇 Золотой<br><small>Цена: 150000</small>
-</div>
- 
 </div>
 
 <button onclick="closeShop()">Закрыть</button>
@@ -246,6 +196,73 @@ green:false,blue:false,dark:false,white:false,matrix:false,demon:false,banana:fa
 
 let current="green";
 
+/* CLICK */
+document.getElementById("apple").onclick=()=>{
+score+=damage;
+update();
+save();
+};
+
+/* UPGRADE */
+function upgrade(){
+if(score>=cost){
+score-=cost;
+damage++;
+cost=Math.floor(cost*1.5);
+update();
+save();
+}
+}
+
+/* SHOP */
+function openShop(){document.getElementById("shop").style.display="block";}
+function closeShop(){document.getElementById("shop").style.display="none";}
+
+/* BUY */
+function buy(type,p){
+
+if(!owned[type] && score<p){
+alert("НЕ ХВАТАЕТ ОЧКОВ");
+return;
+}
+
+if(!owned[type]){
+score-=p;
+owned[type]=true;
+}
+
+apply(type);
+update();
+save();
+}
+
+/* APPLY SKINS */
+function apply(s){
+
+let a=document.getElementById("apple");
+a.className="skin";
+
+if(s==="green"){a.innerText="🍏";a.classList.add("green");}
+else if(s==="blue"){a.innerText="🍎";a.classList.add("blue");}
+else if(s==="dark"){a.innerText="🍎";a.classList.add("dark");}
+else if(s==="white"){a.innerText="🍎";a.classList.add("white");}
+else if(s==="matrix"){a.innerText="🍎";a.classList.add("matrix");}
+else if(s==="demon"){a.innerText="🍎";a.classList.add("demon");}
+else if(s==="banana"){a.innerText="🍌";a.classList.add("banana");}
+else if(s==="gold"){a.innerText="🍎";a.classList.add("gold");}
+
+current=s;
+save();
+}
+
+/* FILTER */
+function filter(t){
+document.querySelectorAll(".skinCard").forEach(c=>{
+if(t==="all") c.style.display="block";
+else c.style.display=(c.dataset.rarity===t)?"block":"none";
+});
+}
+
 /* SAVE */
 function save(){
 localStorage.setItem("score",score);
@@ -258,131 +275,21 @@ localStorage.setItem("current",current);
 /* LOAD */
 function load(){
 let s=localStorage.getItem("score");
-let d=localStorage.getItem("damage");
-let c=localStorage.getItem("cost");
-let o=localStorage.getItem("owned");
-let cur=localStorage.getItem("current");
-
-if(s!==null)score=+s;
-if(d!==null)damage=+d;
-if(c!==null)cost=+c;
-if(o!==null)owned=JSON.parse(o);
-if(cur!==null)current=cur;
-
+if(s!==null){
+score=+s;
+damage=+localStorage.getItem("damage");
+cost=+localStorage.getItem("cost");
+owned=JSON.parse(localStorage.getItem("owned"));
+current=localStorage.getItem("current");
 apply(current);
 update();
 }
+}
 
-/* UPDATE */
 function update(){
 document.getElementById("score").textContent=score;
 document.getElementById("damage").textContent=damage;
 document.getElementById("cost").textContent=cost;
-}
-
-/* CLICK */
-document.getElementById("apple").onclick=()=>{
-score+=damage;
-update();
-save();
-};
-
-/* UPGRADE */
-function upgrade(){
-if(score>=cost){
-score-=cost;
-
-if(damage>=30){
-damage+=2;
-cost=Math.floor(cost*1.8+50);
-}else{
-damage+=1;
-cost=Math.floor(cost*1.4+20);
-}
-
-update();
-save();
-}
-}
-
-/* SHOP */
-function openShop(){
-document.getElementById("shop").style.display="block";
-}
-function closeShop(){
-document.getElementById("shop").style.display="none";
-}
-
-/* BUY */
-function buy(type,p){
-
-if(owned[type]){
-apply(type);
-return;
-}
-
-if(score<p){
-alert("НЕ ХВАТАЕТ ОЧКОВ");
-return;
-}
-
-score-=p;
-owned[type]=true;
-apply(type);
-
-update();
-save();
-}
-
-/* SKINS */
-function apply(s){
-
-let a=document.getElementById("apple");
-
-a.className="skin";
-
-if(s==="green"){a.innerText="🍏"; a.classList.add("green");}
-else if(s==="blue"){a.innerText="🍎"; a.classList.add("blue");}
-else if(s==="dark"){a.innerText="🍎"; a.classList.add("dark");}
-else if(s==="white"){a.innerText="🍎"; a.classList.add("white");}
-else if(s==="matrix"){a.innerText="🍎"; a.classList.add("matrix");}
-else if(s==="demon"){a.innerText="🍎"; a.classList.add("demon");}
-else if(s==="banana"){a.innerText="🍌"; a.classList.add("banana");}
-else if(s==="gold"){a.innerText="🍎"; a.classList.add("gold");}
-
-current=s;
-save();
- }
-
-current=s;
-save();
-}
-
-
-current=s;
-save();
-}
-
-/* FILTER */
-function filter(type){
-
-let cards=document.querySelectorAll(".skinCard");
-
-cards.forEach(c=>{
-
-if(type==="all"){
-c.style.display="block";
-return;
-}
-
-if(c.getAttribute("data-rarity")===type){
-c.style.display="block";
-}else{
-c.style.display="none";
-}
-
-});
-
 }
 
 load();
