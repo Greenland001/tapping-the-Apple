@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Клики = Очки</title>
+
+<style>
+    body{
+        margin:0;
+        height:100vh;
+        display:flex;
+        flex-direction:column;
+        justify-content:center;
+        align-items:center;
+        background:#111827;
+        font-family:Arial, sans-serif;
+        color:white;
+    }
+
+    h1{
+        margin-bottom:20px;
+    }
+
+    #score{
+        font-size:40px;
+        margin-bottom:30px;
+    }
+
+    #item{
+        width:150px;
+        height:150px;
+        background:#3b82f6;
+        border-radius:25px;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        font-size:24px;
+        cursor:pointer;
+        transition:0.1s;
+        user-select:none;
+    }
+
+    #item:active{
+        transform:scale(0.9);
+    }
+</style>
+</head>
+<body>
+
+<h1>Нажимай на предмет!</h1>
+
+<div id="score">Очки: 0</div>
+
+<div id="item">💎</div>
+
+<script>
+    let score = 0;
+
+    const item = document.getElementById("item");
+    const scoreText = document.getElementById("score");
+
+    item.addEventListener("click", () => {
+        score++;
+        scoreText.textContent = "Очки: " + score;
+    });
+</script>
+
+</body>
+</html>
