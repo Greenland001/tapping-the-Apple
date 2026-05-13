@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apple Game</title>
+<title>Apple Game + DEV</title>
 
 <style>
 html,body{
@@ -31,8 +31,6 @@ user-select:none;
 transition:transform .1s;
 filter:drop-shadow(0 10px 10px rgba(0,0,0,.5));
 }
-
-#apple.click{transform:scale(.92);}
 
 .panel{
 background:#2c2c44;
@@ -105,16 +103,27 @@ text-align:center;
 .blackGlow{filter:drop-shadow(0 0 12px purple) brightness(.7);}
 .goldGlow{filter:drop-shadow(0 0 15px gold) brightness(1.4);}
 
-/* notify */
-#notify{
+/* DEV PANEL */
+#devPanel{
 position:fixed;
-top:20px;
-left:50%;
-transform:translateX(-50%);
-background:#333;
-padding:8px 12px;
-border-radius:8px;
+bottom:10px;
+left:10px;
+background:#111;
+padding:10px;
+border-radius:10px;
 display:none;
+z-index:9999;
+}
+
+/* SECRET CORNER */
+#secretCorner{
+position:fixed;
+top:0;
+right:0;
+width:20px;
+height:20px;
+opacity:0;
+z-index:9999;
 }
 
 /* particles */
@@ -122,24 +131,13 @@ display:none;
 0%{transform:translateY(0);opacity:1;}
 100%{transform:translateY(-50px);opacity:0;}
 }
-
-#shopBtn{
-position:fixed;
-top:10px;
-right:10px;
-font-size:24px;
-background:#2c2c44;
-border:none;
-border-radius:8px;
-padding:8px;
-}
 </style>
 </head>
 
 <body>
 
-<button id="shopBtn">🛒</button>
-<div id="notify"></div>
+<!-- СЕКРЕТНЫЙ УГОЛ -->
+<div id="secretCorner"></div>
 
 <div class="game">
 
@@ -161,9 +159,7 @@ padding:8px;
 <!-- SHOP -->
 <div id="shopOverlay">
 <div class="shopBox">
-
 <h2>Магазин</h2>
-<div>Предпросмотр:</div>
 <div id="preview" class="preview">🍎</div>
 
 <button onclick="requestBuy('green')">🟢 1000</button>
@@ -171,7 +167,6 @@ padding:8px;
 <button onclick="requestBuy('gold')">🥇 100000</button>
 
 <button onclick="toggleShop()">Закрыть</button>
-
 </div>
 </div>
 
@@ -179,9 +174,19 @@ padding:8px;
 <div id="confirm">
 <div id="confirmBox">
 <div id="confirmText"></div>
-<button onclick="confirmBuy(true)">КУПИТЬ</button>
+<button onclick="confirmBuy(true)">КУПИТЬ / НАДЕТЬ</button>
 <button onclick="confirmBuy(false)">ОТМЕНА</button>
 </div>
+</div>
+
+<!-- DEV -->
+<div id="devPanel">
+<div>DEV MENU</div>
+<button onclick="devGiveScore()">+10000</button>
+<button onclick="devUnlockAll()">Unlock all skins</button>
+<button onclick="devSetSkin('green')">Green</button>
+<button onclick="devSetSkin('black')">Black</button>
+<button onclick="devSetSkin('gold')">Gold</button>
 </div>
 
 <script>
@@ -194,25 +199,7 @@ let currentSkin="white";
 let pendingSkin=null;
 let pendingPrice=0;
 
-let audioCtx;
-
-const apple=document.getElementById("apple");
-const scoreEl=document.getElementById("score");
-const dmgEl=document.getElementById("damage");
-const costEl=document.getElementById("cost");
-const shop=document.getElementById("shopOverlay");
-const confirmBox=document.getElementById("confirm");
-const confirmText=document.getElementById("confirmText");
-const notify=document.getElementById("notify");
-const preview=document.getElementById("preview");
-
-/* SAVE */
-function save(){
-localStorage.setItem("score",score);
-localStorage.setItem("damage",damage);
-localStorage.setItem("cost",cost);
-localStorage.setItem("skin",currentSkin);
-}
+let owned={green:false,black:false,gold:false};
 
 /* LOAD */
 function load(){
@@ -220,52 +207,41 @@ let s=localStorage.getItem("score");
 let d=localStorage.getItem("damage");
 let c=localStorage.getItem("cost");
 let sk=localStorage.getItem("skin");
+let o=localStorage.getItem("owned");
 
 if(s)score=+s;
 if(d)damage=+d;
 if(c)cost=+c;
 if(sk)currentSkin=sk;
+if(o)owned=JSON.parse(o);
 
 applySkin(currentSkin);
 }
 
+/* SAVE */
+function save(){
+localStorage.setItem("score",score);
+localStorage.setItem("damage",damage);
+localStorage.setItem("cost",cost);
+localStorage.setItem("skin",currentSkin);
+localStorage.setItem("owned",JSON.stringify(owned));
+}
+
 /* UI */
 function update(){
-scoreEl.textContent=score;
-dmgEl.textContent=damage;
-costEl.textContent=cost;
-}
+if(score<0)score=0;
+if(damage<1)damage=1;
 
-/* notify */
-function showNotify(text){
-notify.innerText=text;
-notify.style.display="block";
-setTimeout(()=>notify.style.display="none",1200);
-}
-
-/* sound */
-function warnSound(){
-if(!audioCtx){
-audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-}
-let o=audioCtx.createOscillator();
-let g=audioCtx.createGain();
-
-o.type="square";
-o.frequency.value=600;
-
-g.gain.value=0.05;
-
-o.connect(g);
-g.connect(audioCtx.destination);
-
-o.start();
-g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.15);
-o.stop(audioCtx.currentTime+0.15);
+document.getElementById("score").textContent=score;
+document.getElementById("damage").textContent=damage;
+document.getElementById("cost").textContent=cost;
 }
 
 /* SKINS */
 function applySkin(skin){
+
+let apple=document.getElementById("apple");
+let preview=document.getElementById("preview");
 
 apple.className="";
 preview.className="preview";
@@ -300,9 +276,28 @@ currentSkin=skin;
 save();
 }
 
+/* CLICK */
+document.getElementById("apple").onclick=(e)=>{
+
+score+=damage;
+
+let t=document.createElement("div");
+t.innerText="+"+damage;
+t.style.position="absolute";
+t.style.left=e.pageX+"px";
+t.style.top=e.pageY+"px";
+t.style.color="white";
+t.style.animation="floatUp .5s forwards";
+
+document.body.appendChild(t);
+setTimeout(()=>t.remove(),500);
+
+update();
+save();
+};
+
 /* UPGRADE */
 function upgradeDamage(){
-
 if(score>=cost){
 score-=cost;
 
@@ -320,33 +315,45 @@ save();
 }
 
 /* SHOP */
-document.getElementById("shopBtn").onclick=()=>shop.style.display="flex";
-function toggleShop(){shop.style.display="none";}
+function toggleShop(){
+document.getElementById("shopOverlay").style.display="none";
+}
 
-/* BUY */
 function requestBuy(type){
 
 let prices={green:1000,black:5000,gold:100000};
 
-if(score<prices[type]){
-showNotify("НЕ ХВАТАЕТ ОЧКОВ");
-warnSound();
-return;
-}
-
 pendingSkin=type;
 pendingPrice=prices[type];
 
+if(owned[type]){
+confirmText.innerText="Надеть этот скин?";
+document.getElementById("confirm").style.display="flex";
+return;
+}
+
+if(score<pendingPrice){
+alert("НЕ ХВАТАЕТ ОЧКОВ");
+return;
+}
+
 confirmText.innerText="Купить за "+pendingPrice+"?";
-confirmBox.style.display="flex";
+document.getElementById("confirm").style.display="flex";
 }
 
 function confirmBuy(ok){
 
-confirmBox.style.display="none";
+document.getElementById("confirm").style.display="none";
 if(!ok)return;
 
+if(owned[pendingSkin]){
+applySkin(pendingSkin);
+pendingSkin=null;
+return;
+}
+
 score-=pendingPrice;
+owned[pendingSkin]=true;
 applySkin(pendingSkin);
 
 pendingSkin=null;
@@ -355,27 +362,34 @@ update();
 save();
 }
 
-/* CLICK + PARTICLES */
-apple.onclick=(e)=>{
+/* DEV */
+let devClicks=0;
 
-score+=damage;
+document.getElementById("secretCorner").onclick=()=>{
 
-let t=document.createElement("div");
-t.innerText="+"+damage;
-t.style.position="absolute";
-t.style.left=e.pageX+"px";
-t.style.top=e.pageY+"px";
-t.style.color="white";
-t.style.fontWeight="bold";
-t.style.pointerEvents="none";
-t.style.animation="floatUp .6s forwards";
+devClicks++;
 
-document.body.appendChild(t);
-setTimeout(()=>t.remove(),600);
+setTimeout(()=>devClicks=0,1500);
 
+if(devClicks>=3){
+document.getElementById("devPanel").style.display="block";
+}
+};
+
+function devGiveScore(){
+score+=10000;
 update();
 save();
-};
+}
+
+function devUnlockAll(){
+owned={green:true,black:true,gold:true};
+save();
+}
+
+function devSetSkin(s){
+applySkin(s);
+}
 
 /* START */
 load();
@@ -384,4 +398,5 @@ update();
 </script>
 
 </body>
-</html>
+  </html>
+
