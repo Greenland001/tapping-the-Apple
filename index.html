@@ -2,66 +2,81 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
 <title>Apple Game</title>
 
 <style>
-body{
-    margin:0;
-    font-family:Arial;
-    background:#1e1e2f;
-    color:white;
-    text-align:center;
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden; /* ❗ запрещает "уезд" экрана */
+    font-family: Arial;
+    background: #1e1e2f;
+    color: white;
 }
 
-h1{margin-top:20px;}
-
-#apple{
-    font-size:120px;
-    cursor:pointer;
-    user-select:none;
-    display:inline-block;
-    transition:transform 0.08s;
+/* Центр всей игры */
+.game {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
-.panel{
-    background:#2c2c44;
-    padding:12px;
-    margin:10px auto;
-    width:320px;
-    border-radius:10px;
+h1 {
+    margin: 10px;
 }
 
-button{
-    padding:10px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    margin-top:8px;
+#apple {
+    font-size: 120px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.08s;
 }
 
-#shopBtn{
-    position:fixed;
-    top:15px;
-    right:15px;
-    font-size:24px;
-    background:#2c2c44;
+/* фиксированная анимация клика */
+#apple.click {
+    transform: scale(0.9);
 }
 
-#shop{
-    display:none;
+.panel {
+    background: #2c2c44;
+    padding: 10px;
+    margin-top: 10px;
+    width: 260px;
+    border-radius: 10px;
 }
 
-.critText{
-    position:absolute;
-    color:orange;
-    font-weight:bold;
-    animation:fade 1s forwards;
-    pointer-events:none;
+#shopBtn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    background: #2c2c44;
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
 }
 
-@keyframes fade{
-    0%{opacity:1; transform:translateY(0);}
-    100%{opacity:0; transform:translateY(-30px);}
+#shop {
+    display: none;
+}
+
+.critText {
+    position: absolute;
+    color: orange;
+    font-weight: bold;
+    animation: fade 1s forwards;
+    pointer-events: none;
+}
+
+@keyframes fade {
+    0% {opacity: 1; transform: translateY(0);}
+    100% {opacity: 0; transform: translateY(-30px);}
 }
 </style>
 </head>
@@ -70,27 +85,23 @@ button{
 
 <button id="shopBtn">🛒</button>
 
-<h1>🍎 Apple Clicker</h1>
+<div class="game">
+    <h1>🍎 Apple Clicker</h1>
 
-<div id="apple">🍎</div>
+    <div id="apple">🍎</div>
 
-<div class="panel">
-    <div>Очки: <span id="score">0</span></div>
-</div>
+    <div class="panel">
+        <div>Очки: <span id="score">0</span></div>
+    </div>
 
-<div class="panel">
-    <div>Магазин</div>
-    <div id="shop">
-        <button onclick="buySkin()">Купить белое яблоко (2500)</button>
+    <div class="panel" id="shop">
+        <div>Магазин</div>
+        <button onclick="buySkin()">Белое яблоко (2500)</button>
     </div>
 </div>
 
 <script>
 let score = 0;
-
-let critUsed = 0;
-let windowPoints = 0;
-
 let skinBought = false;
 
 const apple = document.getElementById("apple");
@@ -102,37 +113,18 @@ document.getElementById("shopBtn").onclick = () => {
 };
 
 apple.onclick = (e) => {
-
-    let gain = 1;
-    let isCrit = false;
-
-    // сброс окна 500 очков
-    if(windowPoints >= 500){
-        windowPoints = 0;
-        critUsed = 0;
-    }
-
-    // крит (редко + максимум 3 раза)
-    if(Math.random() < 0.03 && critUsed < 3){
-        gain = 5;
-        critUsed++;
-        isCrit = true;
-    }
-
-    score += gain;
-    windowPoints += gain;
-
+    score += 1;
     update();
 
-    // уменьшение яблока
-    apple.style.transform = "scale(0.85)";
-    setTimeout(()=> apple.style.transform = "scale(1)", 80);
+    // стабильный клик без "уезда"
+    apple.classList.add("click");
+    setTimeout(() => apple.classList.remove("click"), 80);
 
-    // текст крита
-    if(isCrit){
+    // крит эффект (редкий)
+    if (Math.random() < 0.02) {
         let t = document.createElement("div");
         t.className = "critText";
-        t.innerText = "КРИТ +" + gain;
+        t.innerText = "КРИТ!";
         t.style.left = e.pageX + "px";
         t.style.top = e.pageY + "px";
         document.body.appendChild(t);
@@ -144,7 +136,6 @@ function buySkin(){
     if(score >= 2500 && !skinBought){
         score -= 2500;
         skinBought = true;
-
         apple.innerText = "🍏";
         apple.style.filter = "brightness(1.8) grayscale(1)";
         update();
@@ -154,8 +145,6 @@ function buySkin(){
 function update(){
     scoreEl.textContent = score;
 }
-
-update();
 </script>
 
 </body>
