@@ -3,118 +3,129 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
-<title>Apple Game</title>
+<title>Apple Game Full</title>
 
 <style>
-html, body{
-    margin:0;
-    height:100%;
-    overflow:hidden;
-    font-family:Arial;
-    background:#151520;
-    color:white;
+html,body{
+margin:0;
+height:100%;
+overflow:hidden;
+font-family:Arial;
+background:#151520;
+color:white;
 }
 
 .game{
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
+height:100%;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+text-align:center;
 }
 
 #apple{
-    font-size:120px;
-    cursor:pointer;
-    user-select:none;
-    transition:transform 0.1s;
-    filter:drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+font-size:120px;
+cursor:pointer;
+user-select:none;
+transition:transform .1s;
+filter:drop-shadow(0 10px 10px rgba(0,0,0,.5));
 }
 
-#apple.click{ transform:scale(0.92); }
+#apple.click{transform:scale(.92);}
 
 .panel{
-    background:#2c2c44;
-    padding:10px;
-    margin-top:10px;
-    width:280px;
-    border-radius:10px;
+background:#2c2c44;
+padding:10px;
+margin-top:10px;
+width:300px;
+border-radius:10px;
 }
 
 button{
-    padding:8px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    margin-top:6px;
-    width:100%;
+padding:8px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+margin-top:6px;
+width:100%;
+}
+
+#shopBtn{
+position:fixed;
+top:10px;
+right:10px;
+font-size:24px;
+background:#2c2c44;
+border:none;
+border-radius:8px;
+padding:8px;
 }
 
 /* SHOP */
 #shopOverlay{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.85);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:10;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.85);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:10;
 }
 
 .shopBox{
-    background:#2c2c44;
-    padding:20px;
-    border-radius:15px;
-    width:320px;
-    text-align:center;
+background:#2c2c44;
+padding:20px;
+border-radius:15px;
+width:320px;
+text-align:center;
 }
 
 .preview{
-    font-size:80px;
-    margin:10px 0;
+font-size:80px;
+margin:10px 0;
 }
 
-/* confirm */
+/* CONFIRM */
 #confirm{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.8);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:20;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.8);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:20;
 }
 
 #confirmBox{
-    background:#2c2c44;
-    padding:20px;
-    border-radius:12px;
-    width:260px;
-    text-align:center;
+background:#2c2c44;
+padding:20px;
+border-radius:12px;
+width:260px;
+text-align:center;
 }
 
-/* skins */
-.greenGlow{ filter:drop-shadow(0 0 12px lime); }
-.blackGlow{ filter:drop-shadow(0 0 12px purple) brightness(0.7); }
-.goldGlow{ filter:drop-shadow(0 0 15px gold) brightness(1.4); }
+/* SKINS */
+.greenGlow{filter:drop-shadow(0 0 12px lime);}
+.blackGlow{filter:drop-shadow(0 0 12px purple) brightness(.7);}
+.goldGlow{filter:drop-shadow(0 0 15px gold) brightness(1.4);}
 
-#shopBtn{
-    position:fixed;
-    top:10px;
-    right:10px;
-    font-size:24px;
-    background:#2c2c44;
-    border:none;
-    border-radius:8px;
-    padding:8px;
+/* NOTIFY */
+#notify{
+position:fixed;
+top:20px;
+left:50%;
+transform:translateX(-50%);
+background:#333;
+padding:8px 12px;
+border-radius:8px;
+display:none;
 }
 </style>
 </head>
@@ -122,52 +133,53 @@ button{
 <body>
 
 <button id="shopBtn">🛒</button>
+<div id="notify"></div>
 
 <div class="game">
 
-    <div id="apple">🍎</div>
+<div id="apple">🍎</div>
 
-    <div class="panel">
-        <div>Очки: <span id="score">0</span></div>
-        <div>Урон: <span id="damage">1</span></div>
-    </div>
+<div class="panel">
+<div>Очки: <span id="score">0</span></div>
+<div>Урон: <span id="damage">1</span></div>
+</div>
 
-    <div class="panel">
-        <div>Улучшение</div>
-        <div>Цена: <span id="cost">50</span></div>
-        <button onclick="upgradeDamage()">+1 урон</button>
-    </div>
+<div class="panel">
+<div>Улучшение</div>
+<div>Цена: <span id="cost">50</span></div>
+<button onclick="upgradeDamage()">+1 урон</button>
+</div>
 
 </div>
 
 <!-- SHOP -->
 <div id="shopOverlay">
-    <div class="shopBox">
+<div class="shopBox">
 
-        <h2>Магазин</h2>
+<h2>Магазин</h2>
+<div>Предпросмотр:</div>
+<div id="preview" class="preview">🍎</div>
 
-        <div>Предпросмотр:</div>
-        <div id="preview" class="preview">🍎</div>
+<button onclick="requestBuy('green')">🟢 1000</button>
+<button onclick="requestBuy('black')">🌙 5000</button>
+<button onclick="requestBuy('gold')">🥇 100000</button>
 
-        <button onclick="requestBuy('green')">🟢 Зелёное (1000)</button>
-        <button onclick="requestBuy('black')">🌙 Ночное (5000)</button>
-        <button onclick="requestBuy('gold')">🥇 Золотое (100000)</button>
+<button onclick="toggleShop()">Закрыть</button>
 
-        <button onclick="toggleShop()">Закрыть</button>
-
-    </div>
+</div>
 </div>
 
 <!-- CONFIRM -->
 <div id="confirm">
-    <div id="confirmBox">
-        <div id="confirmText">Купить?</div>
-        <button onclick="confirmBuy(true)">КУПИТЬ</button>
-        <button onclick="confirmBuy(false)">ОТМЕНА</button>
-    </div>
+<div id="confirmBox">
+<div id="confirmText"></div>
+<button onclick="confirmBuy(true)">КУПИТЬ</button>
+<button onclick="confirmBuy(false)">ОТМЕНА</button>
+</div>
 </div>
 
 <script>
+
 let score=0;
 let damage=1;
 let cost=50;
@@ -176,149 +188,186 @@ let currentSkin="white";
 let pendingSkin=null;
 let pendingPrice=0;
 
+let audioCtx;
+
 const apple=document.getElementById("apple");
 const scoreEl=document.getElementById("score");
 const dmgEl=document.getElementById("damage");
 const costEl=document.getElementById("cost");
 const shop=document.getElementById("shopOverlay");
-const preview=document.getElementById("preview");
 const confirmBox=document.getElementById("confirm");
 const confirmText=document.getElementById("confirmText");
-
-/* SHOP */
-function toggleShop(){
-    shop.style.display = shop.style.display==="flex"?"none":"flex";
-}
-
-document.getElementById("shopBtn").onclick=toggleShop;
+const notify=document.getElementById("notify");
+const preview=document.getElementById("preview");
 
 /* SAVE */
 function save(){
-    localStorage.setItem("score",score);
-    localStorage.setItem("damage",damage);
-    localStorage.setItem("cost",cost);
-    localStorage.setItem("skin",currentSkin);
+localStorage.setItem("score",score);
+localStorage.setItem("damage",damage);
+localStorage.setItem("cost",cost);
+localStorage.setItem("skin",currentSkin);
 }
 
 /* LOAD */
 function load(){
-    let s=localStorage.getItem("score");
-    let d=localStorage.getItem("damage");
-    let c=localStorage.getItem("cost");
-    let sk=localStorage.getItem("skin");
+let s=localStorage.getItem("score");
+let d=localStorage.getItem("damage");
+let c=localStorage.getItem("cost");
+let sk=localStorage.getItem("skin");
 
-    if(s) score=Number(s);
-    if(d) damage=Number(d);
-    if(c) cost=Number(c);
-    if(sk) currentSkin=sk;
+if(s)score=+s;
+if(d)damage=+d;
+if(c)cost=+c;
+if(sk)currentSkin=sk;
 
-    applySkin(currentSkin);
+applySkin(currentSkin);
 }
 
 /* UI */
 function update(){
-    scoreEl.textContent=score;
-    dmgEl.textContent=damage;
-    costEl.textContent=cost;
+scoreEl.textContent=score;
+dmgEl.textContent=damage;
+costEl.textContent=cost;
+}
+
+/* NOTIFY */
+function showNotify(text){
+notify.innerText=text;
+notify.style.display="block";
+setTimeout(()=>notify.style.display="none",1200);
+}
+
+/* SOUND */
+function warnSound(){
+if(!audioCtx){
+audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+}
+let o=audioCtx.createOscillator();
+let g=audioCtx.createGain();
+
+o.type="square";
+o.frequency.value=600;
+
+g.gain.value=0.05;
+
+o.connect(g);
+g.connect(audioCtx.destination);
+
+o.start();
+g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.15);
+o.stop(audioCtx.currentTime+0.15);
 }
 
 /* SKINS */
 function applySkin(skin){
 
-    apple.className="";
-    preview.className="preview";
+apple.className="";
+preview.className="preview";
 
-    if(skin==="green"){
-        apple.innerText="🍏";
-        preview.innerText="🍏";
-        apple.classList.add("greenGlow");
-        preview.classList.add("greenGlow");
-    }
-
-    if(skin==="black"){
-        apple.innerText="🍎";
-        preview.innerText="🍎";
-        apple.classList.add("blackGlow");
-        preview.classList.add("blackGlow");
-    }
-
-    if(skin==="gold"){
-        apple.innerText="🍎";
-        preview.innerText="🍎";
-        apple.classList.add("goldGlow");
-        preview.classList.add("goldGlow");
-    }
-
-    if(skin==="white"){
-        apple.innerText="🍎";
-        preview.innerText="🍎";
-    }
-
-    currentSkin=skin;
+if(skin==="green"){
+apple.innerText="🍏";
+preview.innerText="🍏";
+apple.classList.add("greenGlow");
+preview.classList.add("greenGlow");
 }
 
-/* REQUEST BUY */
-function requestBuy(type){
-
-    let prices={
-        green:1000,
-        black:5000,
-        gold:100000
-    };
-
-    pendingSkin=type;
-    pendingPrice=prices[type];
-
-    confirmText.innerText=`Купить за ${pendingPrice}?`;
-    confirmBox.style.display="flex";
+if(skin==="black"){
+apple.innerText="🍎";
+preview.innerText="🍎";
+apple.classList.add("blackGlow");
+preview.classList.add("blackGlow");
 }
 
-/* CONFIRM BUY */
-function confirmBuy(yes){
+if(skin==="gold"){
+apple.innerText="🍎";
+preview.innerText="🍎";
+apple.classList.add("goldGlow");
+preview.classList.add("goldGlow");
+}
 
-    confirmBox.style.display="none";
+if(skin==="white"){
+apple.innerText="🍎";
+preview.innerText="🍎";
+}
 
-    if(!yes){
-        pendingSkin=null;
-        return;
-    }
-
-    if(score<pendingPrice){
-        alert("Недостаточно очков");
-        return;
-    }
-
-    score-=pendingPrice;
-
-    applySkin(pendingSkin);
-
-    pendingSkin=null;
-
-    update();
-    save();
+currentSkin=skin;
 }
 
 /* UPGRADE */
 function upgradeDamage(){
-    if(score>=cost){
-        score-=cost;
-        damage++;
-        cost=Math.floor(cost*1.5+20);
-        update();
-        save();
-    }
+
+if(score>=cost){
+score-=cost;
+
+if(damage>=30){
+damage+=2;
+cost=Math.floor(cost*1.8+50);
+}else{
+damage+=1;
+cost=Math.floor(cost*1.4+20);
+}
+
+update();
+save();
+}
+}
+
+/* SHOP OPEN */
+document.getElementById("shopBtn").onclick=()=>shop.style.display="flex";
+
+function toggleShop(){
+shop.style.display="none";
+}
+
+/* BUY REQUEST */
+function requestBuy(type){
+
+let prices={green:1000,black:5000,gold:100000};
+
+if(score<prices[type]){
+showNotify("НЕ ХВАТАЕТ ОЧКОВ");
+warnSound();
+return;
+}
+
+pendingSkin=type;
+pendingPrice=prices[type];
+
+confirmText.innerText="Купить за "+pendingPrice+"?";
+confirmBox.style.display="flex";
+}
+
+/* CONFIRM */
+function confirmBuy(ok){
+
+confirmBox.style.display="none";
+
+if(!ok)return;
+
+score-=pendingPrice;
+applySkin(pendingSkin);
+
+pendingSkin=null;
+
+update();
+save();
 }
 
 /* CLICK */
 apple.onclick=()=>{
-    score+=damage;
-    update();
-    save();
+
+score+=damage;
+
+showNotify("+"+damage);
+
+update();
+save();
 };
 
 /* START */
 load();
 update();
+
 </script>
 
 </body>
