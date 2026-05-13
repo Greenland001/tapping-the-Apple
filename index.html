@@ -70,20 +70,6 @@ button {
     display: none;
 }
 
-.critText {
-    position: absolute;
-    color: orange;
-    font-weight: bold;
-    animation: fade 1s forwards;
-    pointer-events: none;
-}
-
-@keyframes fade {
-    0% {opacity: 1; transform: translateY(0);}
-    100% {opacity: 0; transform: translateY(-40px);}
-}
-
-/* урон текст в разные стороны */
 .dmgText {
     position: absolute;
     font-weight: bold;
@@ -134,59 +120,34 @@ const scoreEl = document.getElementById("score");
 const dmgEl = document.getElementById("damage");
 const shop = document.getElementById("shop");
 
+/* 🔥 ЗАГРУЗКА СОХРАНЕНИЯ */
+function loadGame(){
+    let savedScore = localStorage.getItem("score");
+    let savedDamage = localStorage.getItem("damage");
+    let savedSkin = localStorage.getItem("skin");
+
+    if(savedScore !== null) score = Number(savedScore);
+    if(savedDamage !== null) damage = Number(savedDamage);
+    if(savedSkin === "true"){
+        skinBought = true;
+        apple.innerText = "🍏";
+        apple.style.filter = "brightness(1.8) grayscale(1)";
+    }
+}
+
+/* 💾 СОХРАНЕНИЕ */
+function saveGame(){
+    localStorage.setItem("score", score);
+    localStorage.setItem("damage", damage);
+    localStorage.setItem("skin", skinBought);
+}
+
+/* загрузка при старте */
+loadGame();
+update();
+
 document.getElementById("shopBtn").onclick = () => {
     shop.style.display = (shop.style.display === "block") ? "none" : "block";
 };
 
-apple.onclick = (e) => {
-
-    score += damage;
-    update();
-
-    apple.classList.add("click");
-    setTimeout(() => apple.classList.remove("click"), 80);
-
-    // 💥 урон текст в разные стороны
-    let t = document.createElement("div");
-    t.className = "dmgText";
-    t.innerText = "+" + damage;
-
-    let x = (Math.random() * 80 - 40) + "px";
-    let y = (Math.random() * -80 - 20) + "px";
-
-    t.style.setProperty("--x", x);
-    t.style.setProperty("--y", y);
-
-    t.style.left = e.pageX + "px";
-    t.style.top = e.pageY + "px";
-
-    document.body.appendChild(t);
-    setTimeout(()=>t.remove(),600);
-};
-
-function upgradeDamage(){
-    if(score >= 10){
-        score -= 10;
-        damage += 1;
-        update();
-    }
-}
-
-function buySkin(){
-    if(score >= 2500 && !skinBought){
-        score -= 2500;
-        skinBought = true;
-        apple.innerText = "🍏";
-        apple.style.filter = "brightness(1.8) grayscale(1)";
-        update();
-    }
-}
-
-function update(){
-    scoreEl.textContent = score;
-    dmgEl.textContent = damage;
-}
-</script>
-
-</body>
-</html>
+apple
