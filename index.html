@@ -1,160 +1,62 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Яблоко Кликер</title>
-
-<style>
-    body{
-        margin:0;
-        height:100vh;
-        display:flex;
-        flex-direction:column;
-        justify-content:center;
-        align-items:center;
-        background:#111827;
-        font-family:Arial, sans-serif;
-        color:white;
-    }
-
-    #score{
-        font-size:40px;
-        margin-bottom:20px;
-    }
-
-    #apple{
-        width:140px;
-        height:140px;
-        background:red;
-        border-radius:50%;
-        position:relative;
-        cursor:pointer;
-        margin-bottom:20px;
-        box-shadow:0 0 20px rgba(255,0,0,0.5);
-        transition:0.1s;
-    }
-
-    #apple:active{
-        transform:scale(0.9);
-    }
-
-    #apple .stick{
-        position:absolute;
-        width:8px;
-        height:25px;
-        background:brown;
-        top:-18px;
-        left:66px;
-        border-radius:10px;
-    }
-
-    #apple .leaf{
-        position:absolute;
-        width:35px;
-        height:20px;
-        background:green;
-        top:-10px;
-        left:78px;
-        border-radius:50%;
-        transform:rotate(30deg);
-    }
-
-    button{
-        padding:10px 15px;
-        border:none;
-        border-radius:10px;
-        cursor:pointer;
-        margin:5px;
-    }
-
-    button:disabled{
-        background:gray;
-        cursor:not-allowed;
-    }
-</style>
-</head>
-
-<body>
-
-<div id="score">Очки: 0</div>
-
-<div id="apple">
-    <div class="stick"></div>
-    <div class="leaf"></div>
-</div>
-
-<div id="shop">
-    <button id="upgrade">Улучшение 1 (+2) — 60</button>
-</div>
-
 <script>
 let score = Number(localStorage.getItem("score")) || 0;
-let perClick = Number(localStorage.getItem("perClick")) || 1;
-
-let stage = Number(localStorage.getItem("stage")) || 0; // прогресс магазина
+let damage = Number(localStorage.getItem("damage")) || 1;
+let price = Number(localStorage.getItem("price")) || 60;
 
 const scoreText = document.getElementById("score");
 const apple = document.getElementById("apple");
-const shop = document.getElementById("shop");
+const shop = document.getElementById("upgrade");
+const critText = document.getElementById("critText");
 
 function save(){
     localStorage.setItem("score", score);
-    localStorage.setItem("perClick", perClick);
-    localStorage.setItem("stage", stage);
+    localStorage.setItem("damage", damage);
+    localStorage.setItem("price", price);
 }
 
-function render(){
+function update(){
     scoreText.textContent = "Очки: " + score;
-
-    if(stage === 0){
-        shop.innerHTML = `<button id="upgrade">Улучшение 1 (+2) — 60</button>`;
-        document.getElementById("upgrade").onclick = buy1;
-    }
-    else if(stage === 1){
-        shop.innerHTML = `<button id="upgrade">Улучшение 2 (+3) — 200</button>`;
-        document.getElementById("upgrade").onclick = buy2;
-    }
-    else{
-        shop.innerHTML = `<button disabled>Все улучшения куплены</button>`;
-    }
+    shop.textContent = `Улучшение (+${damage}) — ${price}`;
 }
 
-function buy1(){
-    if(score >= 60){
-        score -= 60;
-        perClick = 2;
-        stage = 1;
-        save();
-        render();
-    }
-}
+function showCrit(){
+    critText.style.opacity = 1;
 
-function buy2(){
-    if(score >= 200){
-        score -= 200;
-        perClick = 3;
-        stage = 2;
-        save();
-        render();
-    }
+    setTimeout(() => {
+        critText.style.opacity = 0;
+    }, 1000);
 }
 
 apple.onclick = () => {
-    let gain = perClick;
+    let gain = damage;
 
-    // критический удар 10%
     if(Math.random() < 0.10){
         gain = 10;
+        showCrit();
     }
 
     score += gain;
     save();
-    render();
+    update();
 };
 
-render();
-</script>
+shop.onclick = () => {
+    if(score >= price){
+        score -= price;
 
-</body>
-</html>
+        // 💡 вот ИСПРАВЛЕНИЕ
+        if(damage < 25){
+            damage += 1;
+        } else {
+            damage += 2;
+        }
+
+        price = Math.floor(price * 1.35 + damage);
+
+        save();
+        update();
+    }
+};
+
+update();
+</script>
