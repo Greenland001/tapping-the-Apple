@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
-<title>Apple Skins</title>
+<title>Apple Game Shop</title>
 
 <style>
 html, body{
@@ -29,8 +29,8 @@ html, body{
     font-size:120px;
     cursor:pointer;
     user-select:none;
-    transition:transform 0.1s, filter 0.3s;
-    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+    transition:transform 0.1s;
+    filter:drop-shadow(0 10px 10px rgba(0,0,0,0.5));
 }
 
 #apple.click{ transform:scale(0.92); }
@@ -52,33 +52,62 @@ button{
     width:100%;
 }
 
-#status{
-    font-size:12px;
-    opacity:0.7;
-    margin-top:5px;
-}
-
-#fallSkin{
+/* ================= SHOP FULL SCREEN ================= */
+#shopOverlay{
     position:fixed;
-    top:-150px;
-    left:50%;
-    transform:translateX(-50%);
-    font-size:90px;
-    transition:top 0.8s ease;
-    pointer-events:none;
-    filter:drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.85);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    z-index:10;
 }
 
-/* эффекты */
+.shopBox{
+    background:#2c2c44;
+    padding:20px;
+    border-radius:15px;
+    width:300px;
+    text-align:center;
+}
+
+.preview{
+    font-size:80px;
+    margin:10px 0;
+    filter:drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+}
+
+#closeShop{
+    margin-top:10px;
+    background:red;
+    color:white;
+}
+
+/* skins */
 .greenGlow{ filter:drop-shadow(0 0 10px lime); }
 .blackGlow{ filter:drop-shadow(0 0 10px purple) brightness(0.7); }
 .goldGlow{ filter:drop-shadow(0 0 15px gold) brightness(1.4); }
+
+#shopBtn{
+    position:fixed;
+    top:10px;
+    right:10px;
+    font-size:24px;
+    background:#2c2c44;
+    border:none;
+    border-radius:8px;
+    padding:8px;
+}
 </style>
 </head>
 
 <body>
 
-<div id="fallSkin"></div>
+<button id="shopBtn">🛒</button>
 
 <div class="game">
 
@@ -86,145 +115,156 @@ button{
 
     <div class="panel">
         <div>Очки: <span id="score">0</span></div>
+        <div>Урон: <span id="damage">1</span></div>
     </div>
 
     <div class="panel">
-        <div>Скины</div>
+        <button onclick="upgradeDamage()">+1 урон</button>
+    </div>
+
+</div>
+
+<!-- ================= SHOP OVERLAY ================= -->
+<div id="shopOverlay">
+    <div class="shopBox">
+
+        <h2>Магазин скинов</h2>
+
+        <div>Предпросмотр:</div>
+        <div id="preview" class="preview">🍎</div>
 
         <button onclick="buySkin('green')">🟢 Зелёное (1000)</button>
         <button onclick="buySkin('black')">🌙 Ночное (5000)</button>
         <button onclick="buySkin('gold')">🥇 Золотое (100000)</button>
 
-        <div id="status">Белое — куплено</div>
-    </div>
+        <button id="closeShop" onclick="toggleShop()">Закрыть</button>
 
+    </div>
 </div>
 
 <script>
 let score=0;
-
-let owned={
-    green:false,
-    black:false,
-    gold:false
-};
+let damage=1;
+let cost=50;
 
 let currentSkin="white";
 
 const apple=document.getElementById("apple");
 const scoreEl=document.getElementById("score");
-const statusEl=document.getElementById("status");
-const fallSkin=document.getElementById("fallSkin");
+const dmgEl=document.getElementById("damage");
+const shop=document.getElementById("shopOverlay");
+const preview=document.getElementById("preview");
 
-/* ================= SAVE ================= */
+/* OPEN/CLOSE SHOP */
+function toggleShop(){
+    shop.style.display = shop.style.display==="flex"?"none":"flex";
+}
+
+/* SHOP BUTTON */
+document.getElementById("shopBtn").onclick=toggleShop;
+
+/* SAVE */
 function save(){
     localStorage.setItem("score",score);
-    localStorage.setItem("owned",JSON.stringify(owned));
+    localStorage.setItem("damage",damage);
     localStorage.setItem("skin",currentSkin);
 }
 
 function load(){
     let s=localStorage.getItem("score");
-    let o=localStorage.getItem("owned");
+    let d=localStorage.getItem("damage");
     let sk=localStorage.getItem("skin");
 
     if(s) score=Number(s);
-    if(o) owned=JSON.parse(o);
+    if(d) damage=Number(d);
     if(sk) currentSkin=sk;
 
     applySkin(currentSkin);
 }
 
+/* UPDATE UI */
 function update(){
     scoreEl.textContent=score;
+    dmgEl.textContent=damage;
 }
 
-/* ================= FALL ANIMATION ================= */
-function spawnSkinFall(emoji){
-    fallSkin.innerText=emoji;
-    fallSkin.style.top="-150px";
-
-    setTimeout(()=>{
-        fallSkin.style.top="40%";
-    },50);
-
-    setTimeout(()=>{
-        fallSkin.style.top="-150px";
-    },900);
-}
-
-/* ================= SKINS ================= */
+/* SKINS */
 function applySkin(skin){
 
     apple.className="";
+    preview.className="preview";
 
     if(skin==="green"){
         apple.innerText="🍏";
+        preview.innerText="🍏";
         apple.classList.add("greenGlow");
-        statusEl.innerText="Зелёное — куплено";
+        preview.classList.add("greenGlow");
     }
 
     if(skin==="black"){
         apple.innerText="🍎";
+        preview.innerText="🍎";
         apple.classList.add("blackGlow");
-        statusEl.innerText="Ночное — куплено";
+        preview.classList.add("blackGlow");
     }
 
     if(skin==="gold"){
         apple.innerText="🍎";
+        preview.innerText="🍎";
         apple.classList.add("goldGlow");
-        statusEl.innerText="Золотое — куплено";
+        preview.classList.add("goldGlow");
     }
 
     if(skin==="white"){
         apple.innerText="🍎";
-        statusEl.innerText="Белое — куплено";
+        preview.innerText="🍎";
     }
 
     currentSkin=skin;
     save();
 }
 
-/* ================= BUY ================= */
+/* BUY */
 function buySkin(type){
 
     if(type==="green" && score>=1000){
         score-=1000;
-        owned.green=true;
-
-        spawnSkinFall("🍏"); // 👈 прилетает сверху
-        setTimeout(()=>applySkin("green"),800);
+        applySkin("green");
     }
 
     if(type==="black" && score>=5000){
         score-=5000;
-        owned.black=true;
-
-        spawnSkinFall("🌙");
-        setTimeout(()=>applySkin("black"),800);
+        applySkin("black");
     }
 
     if(type==="gold" && score>=100000){
         score-=100000;
-        owned.gold=true;
-
-        spawnSkinFall("🥇");
-        setTimeout(()=>applySkin("gold"),800);
+        applySkin("gold");
     }
 
     update();
     save();
 }
 
-/* ================= CLICK ================= */
-apple.onclick=()=>{
+/* UPGRADE */
+function upgradeDamage(){
+    if(score>=cost){
+        score-=cost;
+        damage++;
+        cost=Math.floor(cost*1.5+20);
+        update();
+        save();
+    }
+}
 
-    score+=1;
+/* CLICK */
+apple.onclick=()=>{
+    score+=damage;
     update();
     save();
 };
 
-/* start */
+/* START */
 load();
 update();
 </script>
