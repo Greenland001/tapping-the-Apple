@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Apple Game Full</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apple Game</title>
 
 <style>
 html,body{
@@ -49,17 +49,6 @@ border-radius:8px;
 cursor:pointer;
 margin-top:6px;
 width:100%;
-}
-
-#shopBtn{
-position:fixed;
-top:10px;
-right:10px;
-font-size:24px;
-background:#2c2c44;
-border:none;
-border-radius:8px;
-padding:8px;
 }
 
 /* SHOP */
@@ -116,7 +105,7 @@ text-align:center;
 .blackGlow{filter:drop-shadow(0 0 12px purple) brightness(.7);}
 .goldGlow{filter:drop-shadow(0 0 15px gold) brightness(1.4);}
 
-/* NOTIFY */
+/* notify */
 #notify{
 position:fixed;
 top:20px;
@@ -126,6 +115,23 @@ background:#333;
 padding:8px 12px;
 border-radius:8px;
 display:none;
+}
+
+/* particles */
+@keyframes floatUp{
+0%{transform:translateY(0);opacity:1;}
+100%{transform:translateY(-50px);opacity:0;}
+}
+
+#shopBtn{
+position:fixed;
+top:10px;
+right:10px;
+font-size:24px;
+background:#2c2c44;
+border:none;
+border-radius:8px;
+padding:8px;
 }
 </style>
 </head>
@@ -230,14 +236,14 @@ dmgEl.textContent=damage;
 costEl.textContent=cost;
 }
 
-/* NOTIFY */
+/* notify */
 function showNotify(text){
 notify.innerText=text;
 notify.style.display="block";
 setTimeout(()=>notify.style.display="none",1200);
 }
 
-/* SOUND */
+/* sound */
 function warnSound(){
 if(!audioCtx){
 audioCtx=new (window.AudioContext||window.webkitAudioContext)();
@@ -291,6 +297,7 @@ preview.innerText="🍎";
 }
 
 currentSkin=skin;
+save();
 }
 
 /* UPGRADE */
@@ -312,14 +319,11 @@ save();
 }
 }
 
-/* SHOP OPEN */
+/* SHOP */
 document.getElementById("shopBtn").onclick=()=>shop.style.display="flex";
+function toggleShop(){shop.style.display="none";}
 
-function toggleShop(){
-shop.style.display="none";
-}
-
-/* BUY REQUEST */
+/* BUY */
 function requestBuy(type){
 
 let prices={green:1000,black:5000,gold:100000};
@@ -337,11 +341,9 @@ confirmText.innerText="Купить за "+pendingPrice+"?";
 confirmBox.style.display="flex";
 }
 
-/* CONFIRM */
 function confirmBuy(ok){
 
 confirmBox.style.display="none";
-
 if(!ok)return;
 
 score-=pendingPrice;
@@ -353,12 +355,23 @@ update();
 save();
 }
 
-/* CLICK */
-apple.onclick=()=>{
+/* CLICK + PARTICLES */
+apple.onclick=(e)=>{
 
 score+=damage;
 
-showNotify("+"+damage);
+let t=document.createElement("div");
+t.innerText="+"+damage;
+t.style.position="absolute";
+t.style.left=e.pageX+"px";
+t.style.top=e.pageY+"px";
+t.style.color="white";
+t.style.fontWeight="bold";
+t.style.pointerEvents="none";
+t.style.animation="floatUp .6s forwards";
+
+document.body.appendChild(t);
+setTimeout(()=>t.remove(),600);
 
 update();
 save();
@@ -372,5 +385,3 @@ update();
 
 </body>
 </html>
-
-    
