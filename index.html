@@ -1,301 +1,135 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apple Clicker FIX</title>
+    <meta charset="UTF-8">
+    <title>Apple Clicker</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none;
+        }
 
-<style>
-html, body{
-margin:0;
-height:100%;
-font-family:Arial;
-background:#151520;
-color:white;
-user-select:none;
--webkit-user-select:none;
-}
+        #score-container {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
 
-*{
-user-select:none;
--webkit-user-select:none;
--webkit-touch-callout:none;
-}
+        #apple {
+            width: 200px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
 
-.game{
-height:100%;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-text-align:center;
-}
+        #apple:active {
+            transform: scale(0.9);
+        }
 
-#apple{
-font-size:120px;
-cursor:pointer;
-transition:0.1s;
-}
+        #shop {
+            margin-top: 50px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
 
-#apple:active{
-transform:scale(0.92);
-}
+        .upgrade-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
 
-.panel{
-background:#2c2c44;
-padding:10px;
-margin-top:10px;
-width:300px;
-border-radius:10px;
-}
+        .upgrade-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
 
-button{
-padding:8px;
-border:none;
-border-radius:8px;
-cursor:pointer;
-width:100%;
-margin-top:5px;
-}
-
-/* SHOP */
-#shop{
-position:fixed;
-bottom:0;
-left:0;
-width:100%;
-background:#111;
-display:none;
-padding:10px;
-}
-
-.shopBox{
-max-width:450px;
-margin:auto;
-background:#2c2c44;
-padding:10px;
-border-radius:10px;
-text-align:center;
-}
-
-/* SKINS */
-.skin{font-size:120px;}
-
-.green{color:lime;}
-.blue{color:#4da3ff;}
-.dark{color:#333;}
-.white{color:white;}
-.matrix{color:#00ff66;}
-.demon{color:red;}
-.banana{color:#ffd84d;}
-.gold{color:gold;}
-
-.skinGrid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-margin-top:10px;
-}
-
-.skinCard{
-background:#1f1f33;
-padding:10px;
-border-radius:10px;
-cursor:pointer;
-}
-
-.skinCard small{
-opacity:0.7;
-}
-
-.rarityBar{
-display:flex;
-gap:5px;
-margin-bottom:10px;
-}
-
-.rarity{
-flex:1;
-padding:5px;
-background:#1a1a2a;
-border-radius:6px;
-cursor:pointer;
-font-size:11px;
-}
-
-</style>
+        .info {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="game">
+    <div id="score-container">Очки: <span id="score">0</span></div>
+    
+    <!-- Вместо картинки используем большое Эмодзи яблока -->
+    <div id="apple" style="font-size: 150px; text-align: center;">🍎</div>
 
-<div id="apple">🍎</div>
+    <div id="shop">
+        <h3>Магазин улучшений</h3>
+        <button id="upgradeBtn" class="upgrade-btn">
+            Улучшить клик (+1)
+        </button>
+        <div class="info">Цена: <span id="upgradeCost">10</span> очков</div>
+        <div class="info">Сейчас за клик: <span id="clickPower">1</span></div>
+    </div>
 
-<div class="panel">
-Очки: <span id="score">0</span><br>
-Урон: <span id="damage">1</span>
-</div>
+    <script>
+        // Начальные данные
+        let score = 0;
+        let clickPower = 1;
+        let upgradeCost = 10;
 
-<div class="panel">
-<b>Улучшение</b><br>
-Цена: <span id="cost">50</span><br>
-<button onclick="upgrade()">Купить</button>
-</div>
+        // Элементы страницы
+        const scoreDisplay = document.getElementById('score');
+        const apple = document.getElementById('apple');
+        const upgradeBtn = document.getElementById('upgradeBtn');
+        const upgradeCostDisplay = document.getElementById('upgradeCost');
+        const clickPowerDisplay = document.getElementById('clickPower');
 
-<div class="panel">
-<button onclick="openShop()">🛒 Магазин</button>
-</div>
+        // Функция обновления текста на экране
+        function updateDisplay() {
+            scoreDisplay.innerText = Math.floor(score);
+            upgradeCostDisplay.innerText = upgradeCost;
+            clickPowerDisplay.innerText = clickPower;
+            
+            // Если денег не хватает, кнопка становится серой
+            if (score < upgradeCost) {
+                upgradeBtn.disabled = true;
+            } else {
+                upgradeBtn.disabled = false;
+            }
+        }
 
-</div>
+        // Клик по яблоку
+        apple.addEventListener('click', () => {
+            score += clickPower;
+            updateDisplay();
+        });
 
-<!-- SHOP -->
-<div id="shop">
-<div class="shopBox">
+        // Покупка улучшения
+        upgradeBtn.addEventListener('click', () => {
+            if (score >= upgradeCost) {
+                score -= upgradeCost;
+                clickPower += 1; // Увеличиваем силу клика
+                upgradeCost = Math.round(upgradeCost * 1.5); // Цена растет в 1.5 раза
+                updateDisplay();
+            }
+        });
 
-<div class="rarityBar">
-<div class="rarity" onclick="filter('all')">Все</div>
-<div class="rarity" onclick="filter('common')">Обычные</div>
-<div class="rarity" onclick="filter('rare')">Редкие</div>
-<div class="rarity" onclick="filter('super')">Сверхредкие</div>
-<div class="rarity" onclick="filter('mythic')">Мифические</div>
-<div class="rarity" onclick="filter('legendary')">Легендарные</div>
-</div>
-
-<div class="skinGrid">
-
-<div class="skinCard" data-rarity="common" onclick="buy('green',1000)">🟢 Зелёный<br><small>1000</small></div>
-<div class="skinCard" data-rarity="common" onclick="buy('blue',2000)">🔵 Синий<br><small>2000</small></div>
-
-<div class="skinCard" data-rarity="rare" onclick="buy('dark',5000)">⚫ Тёмный<br><small>5000</small></div>
-<div class="skinCard" data-rarity="rare" onclick="buy('white',5000)">⚪ Белый<br><small>5000</small></div>
-
-<div class="skinCard" data-rarity="super" onclick="buy('matrix',15000)">🟩 Матрица<br><small>15000</small></div>
-
-<div class="skinCard" data-rarity="mythic" onclick="buy('demon',50000)">🔥 Адский<br><small>50000</small></div>
-
-<div class="skinCard" data-rarity="legendary" onclick="buy('banana',100000)">🍌 Банановый<br><small>100000</small></div>
-<div class="skinCard" data-rarity="legendary" onclick="buy('gold',150000)">🥇 Золотой<br><small>150000</small></div>
-
-</div>
-
-<button onclick="closeShop()">Закрыть</button>
-
-</div>
-</div>
-
-<script>
-
-let score=0;
-let damage=1;
-let cost=50;
-
-let owned={
-green:false,blue:false,dark:false,white:false,matrix:false,demon:false,banana:false,gold:false
-};
-
-let current="green";
-
-/* CLICK */
-document.getElementById("apple").onclick=()=>{
-score+=damage;
-update();
-save();
-};
-
-/* UPGRADE */
-function upgrade(){
-if(score>=cost){
-score-=cost;
-damage++;
-cost=Math.floor(cost*1.5);
-update();
-save();
-}
-}
-
-/* SHOP */
-function openShop(){document.getElementById("shop").style.display="block";}
-function closeShop(){document.getElementById("shop").style.display="none";}
-
-/* BUY */
-function buy(type,p){
-
-if(!owned[type] && score<p){
-alert("НЕ ХВАТАЕТ ОЧКОВ");
-return;
-}
-
-if(!owned[type]){
-score-=p;
-owned[type]=true;
-}
-
-apply(type);
-update();
-save();
-}
-
-/* APPLY SKINS */
-function apply(s){
-
-let a=document.getElementById("apple");
-a.className="skin";
-
-if(s==="green"){a.innerText="🍏";a.classList.add("green");}
-else if(s==="blue"){a.innerText="🍎";a.classList.add("blue");}
-else if(s==="dark"){a.innerText="🍎";a.classList.add("dark");}
-else if(s==="white"){a.innerText="🍎";a.classList.add("white");}
-else if(s==="matrix"){a.innerText="🍎";a.classList.add("matrix");}
-else if(s==="demon"){a.innerText="🍎";a.classList.add("demon");}
-else if(s==="banana"){a.innerText="🍌";a.classList.add("banana");}
-else if(s==="gold"){a.innerText="🍎";a.classList.add("gold");}
-
-current=s;
-save();
-}
-
-/* FILTER */
-function filter(t){
-document.querySelectorAll(".skinCard").forEach(c=>{
-if(t==="all") c.style.display="block";
-else c.style.display=(c.dataset.rarity===t)?"block":"none";
-});
-}
-
-/* SAVE */
-function save(){
-localStorage.setItem("score",score);
-localStorage.setItem("damage",damage);
-localStorage.setItem("cost",cost);
-localStorage.setItem("owned",JSON.stringify(owned));
-localStorage.setItem("current",current);
-}
-
-/* LOAD */
-function load(){
-let s=localStorage.getItem("score");
-if(s!==null){
-score=+s;
-damage=+localStorage.getItem("damage");
-cost=+localStorage.getItem("cost");
-owned=JSON.parse(localStorage.getItem("owned"));
-current=localStorage.getItem("current");
-apply(current);
-update();
-}
-}
-
-function update(){
-document.getElementById("score").textContent=score;
-document.getElementById("damage").textContent=damage;
-document.getElementById("cost").textContent=cost;
-}
-
-load();
-update();
-
-</script>
-
+        // Запускаем проверку кнопок сразу
+        updateDisplay();
+    </script>
 </body>
 </html>
+
+
