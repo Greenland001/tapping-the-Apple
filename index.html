@@ -3,180 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apple Clicker: Final Edition</title>
+    <title>Simple Apple Clicker</title>
     <style>
-        :root {
-            --accent: #f1c40f;
-            --glass: rgba(255, 255, 255, 0.1);
-            --border: rgba(255, 255, 255, 0.15);
-        }
-
         body {
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            background: radial-gradient(circle at center, #1e272e 0%, #000 100%);
-            color: white; display: flex; flex-direction: column; align-items: center;
-            height: 100vh; margin: 0; overflow: hidden; user-select: none; touch-action: none;
+            font-family: sans-serif;
+            background-color: #121212;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+            touch-action: manipulation;
         }
 
-        @keyframes rainbow {
-            0% { filter: hue-rotate(0deg) drop-shadow(0 0 15px red); }
-            50% { filter: hue-rotate(180deg) drop-shadow(0 0 15px blue); }
-            100% { filter: hue-rotate(360deg) drop-shadow(0 0 15px red); }
-        }
-        .rainbow-skin { animation: rainbow 3s linear infinite !important; }
-
-        /* Панель счета */
-        #score-panel {
-            margin-top: 50px; background: var(--glass); backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px); padding: 25px 50px; border-radius: 30px;
-            border: 1px solid var(--border); text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.7);
+        /* Счетчик */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
         }
 
-        #score { font-size: 55px; font-weight: 900; color: var(--accent); display: block; line-height: 1; margin-bottom: 12px; }
-        .stats { display: flex; justify-content: center; gap: 20px; font-size: 13px; text-transform: uppercase; opacity: 0.8; }
-        .stats b { color: var(--accent); }
+        #score {
+            font-size: 60px;
+            font-weight: bold;
+            color: #ff4d4d;
+            display: block;
+        }
 
+        .info {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        /* Яблоко */
         #apple {
-            font-size: 160px; cursor: pointer; transition: transform 0.05s;
-            margin: 45px 0; display: inline-block;
+            font-size: 150px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            margin: 30px 0;
+            display: inline-block;
         }
-        #apple:active { transform: scale(0.92); }
 
-        .upg-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 380px; }
-        .upg-btn { 
-            background: var(--glass); border: 1px solid var(--border); color: white; 
-            padding: 20px; border-radius: 22px; font-size: 14px; font-weight: bold;
+        #apple:active {
+            transform: scale(0.9);
         }
-        .upg-btn:disabled { opacity: 0.2; }
 
-        /* Магазин */
-        #shop-panel {
-            position: fixed; top: 0; right: -100%; width: 88%; height: 100%;
-            background: #0f0f0f; transition: 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 500;
-            display: flex; flex-direction: column; padding: 30px; box-sizing: border-box;
+        /* Кнопки улучшений */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 250px;
         }
-        #shop-panel.open { right: 0; box-shadow: -15px 0 50px #000; }
-        .skins-list { overflow-y: auto; flex-grow: 1; margin-top: 20px; }
-        .skin-card { 
-            background: rgba(255,255,255,0.04); margin-bottom: 12px; padding: 15px; 
-            border-radius: 18px; display: flex; align-items: center; border-left: 4px solid var(--accent);
+
+        .btn {
+            background-color: #1e1e1e;
+            border: 2px solid #333;
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            transition: 0.2s;
         }
-        
-        .hint { color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 25px; letter-spacing: 1px; }
+
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn b {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .btn span {
+            font-size: 12px;
+            color: #ffcc00;
+        }
     </style>
 </head>
 <body>
 
-    <audio id="bg-music" loop>
-        <source src="https://actions.google.com/static/audio/libs/relaxing_sounds/ambience_relaxing_waves.mp3" type="audio/mpeg">
-    </audio>
-
-    <div id="score-panel">
+    <div class="header">
         <span id="score">0</span>
-        <div class="stats">
-            <div>За клик: <b id="ui-click">+1</b></div>
-            <div>В секунду: <b id="ui-auto">+0</b></div>
+        <div class="info">
+            Клик: <b id="val-click">1</b> | В сек: <b id="val-auto">0</b>
         </div>
     </div>
 
     <div id="apple">🍎</div>
 
-    <div class="upg-buttons">
-        <button class="upg-btn" id="btn-click">УЛУЧШИТЬ КЛИК<br><b id="c-cost">15</b></button>
-        <button class="upg-btn" id="btn-auto">КУПИТЬ ФЕРМУ<br><b id="a-cost">50</b></button>
-    </div>
-
-    <div class="hint">СВАЙП ВЛЕВО — МАГАЗИН СКИНОВ</div>
-
-    <div id="shop-panel">
-        <h2 style="color: var(--accent); text-align: center; margin: 0;">МАГАЗИН</h2>
-        <div class="skins-list" id="skins-list"></div>
-        <button onclick="toggleShop(false)" style="width:100%; padding:15px; margin-top:15px; background:none; border:1px solid #333; color:#aaa; border-radius:15px;">ЗАКРЫТЬ</button>
+    <div class="controls">
+        <button class="btn" id="buy-click">
+            <b>+1 к клику</b>
+            <span>Цена: <i id="cost-click">15</i></span>
+        </button>
+        
+        <button class="btn" id="buy-auto">
+            <b>Автокликер (+1 сек)</b>
+            <span>Цена: <i id="cost-auto">50</i></span>
+        </button>
     </div>
 
     <script>
-        let game = { score: 0, clickP: 1, clickC: 15, autoP: 0, autoC: 50, owned: ['default'], filter: 'none' };
+        // Данные игры
+        let apples = 0;
+        let power = 1;
+        let auto = 0;
+        let priceClick = 15;
+        let priceAuto = 50;
 
-        const skins = [
-            { id: 'default', name: 'Обычное', price: 0, f: 'none', c: '#fff' },
-            { id: 'green', name: 'Зеленое', price: 1500, f: 'hue-rotate(100deg)', c: '#2ecc71' },
-            { id: 'dark', name: 'Темное', price: 2000, f: 'brightness(0.2)', c: '#555' },
-            { id: 'blood', name: 'Кровавое', price: 5000, f: 'hue-rotate(300deg) brightness(0.6)', c: '#e74c3c' },
-            { id: 'dirty', name: 'Грязное', price: 6500, f: 'sepia(0.8) brightness(0.6)', c: '#795548' },
-            { id: 'small', name: 'Маленькое', price: 8000, f: 'scale(0.6)', c: '#ff9800' },
-            { id: 'ice', name: 'Ледяное', price: 35500, f: 'hue-rotate(190deg) brightness(1.5)', c: '#03a9f4' },
-            { id: 'matrix', name: 'Матрица', price: 25000, f: 'hue-rotate(120deg) drop-shadow(0 0 10px green)', c: '#4caf50' },
-            { id: 'gold', name: 'Золотое', price: 60000, f: 'sepia(1) saturate(5) brightness(1)', c: '#f1c40f' },
-            { id: 'diamond', name: 'Алмазное', price: 90000, f: 'hue-rotate(180deg) brightness(1.8)', c: '#e1f5fe' },
-            { id: 'rainbow', name: 'Радужное', price: 130000, f: 'rainbow', c: '#f1c40f' }
-        ];
+        // Элементы
+        const scoreEl = document.getElementById('score');
+        const appleEl = document.getElementById('apple');
+        const btnClick = document.getElementById('buy-click');
+        const btnAuto = document.getElementById('buy-auto');
 
-        function updateUI() {
-            document.getElementById('score').innerText = Math.floor(game.score);
-            document.getElementById('ui-click').innerText = "+" + game.clickP;
-            document.getElementById('ui-auto').innerText = "+" + game.autoP;
-            document.getElementById('c-cost').innerText = game.clickC;
-            document.getElementById('a-cost').innerText = game.autoC;
-            document.getElementById('btn-click').disabled = game.score < game.clickC;
-            document.getElementById('btn-auto').disabled = game.score < game.autoC;
+        const costClickEl = document.getElementById('cost-click');
+        const costAutoEl = document.getElementById('cost-auto');
+        const valClickEl = document.getElementById('val-click');
+        const valAutoEl = document.getElementById('val-auto');
+
+        // Функция обновления экрана
+        function update() {
+            scoreEl.innerText = Math.floor(apples);
+            valClickEl.innerText = power;
+            valAutoEl.innerText = auto;
+            costClickEl.innerText = priceClick;
+            costAutoEl.innerText = priceAuto;
+
+            btnClick.disabled = apples < priceClick;
+            btnAuto.disabled = apples < priceAuto;
             
-            const apple = document.getElementById('apple');
-            apple.className = (game.filter === 'rainbow') ? 'rainbow-skin' : '';
-            apple.style.filter = (game.filter === 'rainbow') ? '' : game.filter;
-
-            renderSkins();
-            localStorage.setItem('apple_clicker_save', JSON.stringify(game));
+            // Сохранение в память браузера
+            localStorage.setItem('simple_apple_save', JSON.stringify({
+                apples, power, auto, priceClick, priceAuto
+            }));
         }
 
-        function renderSkins() {
-            const list = document.getElementById('skins-list');
-            list.innerHTML = '';
-            skins.forEach(s => {
-                const isOwned = game.owned.includes(s.id);
-                const card = document.createElement('div');
-                card.className = 'skin-card';
-                card.innerHTML = `
-                    <div style="font-size:32px; margin-right:15px; filter:${s.f === 'rainbow' ? '' : s.f}" class="${s.f==='rainbow'?'rainbow-skin':''}">🍎</div>
-                    <div style="flex-grow:1"><b>${s.name}</b></div>
-                    <button onclick="handleSkin('${s.id}')" style="background:${isOwned?'#333': 'var(--accent)'}; border:none; padding:10px 15px; border-radius:10px; font-weight:bold; color:${isOwned?'#fff':'#000'}">
-                        ${isOwned ? (game.filter === s.f ? 'Надето' : 'Выбрать') : s.price}
-                    </button>`;
-                list.appendChild(card);
-            });
+        // Клик по яблоку
+        appleEl.onclick = () => {
+            apples += power;
+            update();
+        };
+
+        // Покупка силы клика
+        btnClick.onclick = () => {
+            if (apples >= priceClick) {
+                apples -= priceClick;
+                power += 1;
+                priceClick = Math.round(priceClick * 1.5);
+                update();
+            }
+        };
+
+        // Покупка автокликера
+        btnAuto.onclick = () => {
+            if (apples >= priceAuto) {
+                apples -= priceAuto;
+                auto += 1;
+                priceAuto = Math.round(priceAuto * 1.6);
+                update();
+            }
+        };
+
+        // Работа автокликера (раз в секунду)
+        setInterval(() => {
+            if (auto > 0) {
+                apples += auto;
+                update();
+            }
+        }, 1000);
+
+        // Загрузка сохранения
+        const saved = JSON.parse(localStorage.getItem('simple_apple_save'));
+        if (saved) {
+            apples = saved.apples;
+            power = saved.power;
+            auto = saved.auto;
+            priceClick = saved.priceClick;
+            priceAuto = saved.priceAuto;
         }
 
-        window.handleSkin = (id) => {
-            const s = skins.find(x => x.id === id);
-            if (game.owned.includes(id)) game.filter = s.f;
-            else if (game.score >= s.price) { game.score -= s.price; game.owned.push(id); game.filter = s.f; }
-            updateUI();
-        };
-
-        document.getElementById('apple').onpointerdown = () => {
-            game.score += game.clickP; updateUI();
-            const m = document.getElementById('bg-music'); if(m.paused) m.play();
-        };
-
-        document.getElementById('btn-click').onclick = () => {
-            if (game.score >= game.clickC) { game.score -= game.clickC; game.clickP++; game.clickC = Math.round(game.clickC * 1.6); updateUI(); }
-        };
-        document.getElementById('btn-auto').onclick = () => {
-            if (game.score >= game.autoC) { game.score -= game.autoC; game.autoP++; game.autoC = Math.round(game.autoC * 1.7); updateUI(); }
-        };
-
-        let sX = 0;
-        document.ontouchstart = e => sX = e.touches[0].clientX;
-        document.ontouchend = e => {
-            let d = sX - e.changedTouches[0].clientX;
-            if (d > 80) toggleShop(true); if (d < -80) toggleShop(false);
-        };
-        function toggleShop(o) { document.getElementById('shop-panel').classList.toggle('open', o); }
-
-        setInterval(() => { if (game.autoP > 0) { game.score += game.autoP; updateUI(); } }, 1000);
-
-        const saved = JSON.parse(localStorage.getItem('apple_clicker_save'));
-        if (saved) game = {...game, ...saved};
-        updateUI();
+        update();
     </script>
 </body>
 </html>
