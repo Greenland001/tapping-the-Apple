@@ -3,45 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apple Brawl: Island Survival</title>
+    <title>Dan the Man Style Platformer</title>
     <style>
-        body { margin: 0; background: #1e3799; overflow: hidden; font-family: sans-serif; touch-action: none; user-select: none; }
+        body { margin: 0; background: #87CEEB; overflow: hidden; font-family: 'Arial', sans-serif; touch-action: none; user-select: none; }
         canvas { display: block; }
 
-        #ui { position: absolute; top: 15px; left: 15px; color: white; pointer-events: none; text-shadow: 2px 2px 4px #000; }
-        #joy-container {
-            position: absolute; bottom: 40px; left: 40px;
-            width: 120px; height: 120px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);
-        }
-        #joy-stick {
-            position: absolute; top: 30px; left: 30px;
-            width: 60px; height: 60px;
-            background: rgba(255,255,255,0.5);
-            border-radius: 50%;
-        }
-        #action-btn {
-            position: absolute; bottom: 50px; right: 50px;
-            width: 90px; height: 90px;
-            background: #e74c3c; border-radius: 50%;
-            border: 4px solid #c0392b; color: white;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold;
-        }
+        /* Интерфейс */
+        #ui { position: absolute; top: 15px; left: 15px; color: #fff; text-shadow: 2px 2px #000; pointer-events: none; }
+        
+        /* Управление */
+        #controls { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; box-sizing: border-box; }
+        
+        .d-pad { display: grid; grid-template-columns: 60px 60px 60px; grid-template-rows: 60px 60px; }
+        .btn { width: 60px; height: 60px; background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .btn:active { background: rgba(255,255,255,0.4); }
+        
+        #jump-btn { width: 80px; height: 80px; border-radius: 50%; background: #e74c3c; border: 4px solid #c0392b; font-size: 20px; }
     </style>
 </head>
 <body>
 
     <div id="ui">
-        <div style="font-size: 24px;">🍎 Яблоки: <span id="score">0</span></div>
-        <div id="status">Держись на земле!</div>
+        <div style="font-size: 24px;">🍎: <span id="score">0</span></div>
     </div>
 
     <canvas id="game"></canvas>
 
-    <div id="joy-container"><div id="joy-stick"></div></div>
-    <div id="action-btn">ПРЫЖОК</div>
+    <div id="controls">
+        <!-- Крестик для ходьбы -->
+        <div class="d-pad">
+            <div style="grid-column: 1; grid-row: 2;" class="btn" id="left-btn">◀</div>
+            <div style="grid-column: 3; grid-row: 2;" class="btn" id="right-btn">▶</div>
+        </div>
+        <!-- Кнопка прыжка -->
+        <div class="btn" id="jump-btn">↑</div>
+    </div>
 
     <script>
         const canvas = document.getElementById('game');
@@ -50,148 +46,120 @@
         canvas.height = window.innerHeight;
 
         let score = 0;
-        let gameState = "play";
-
-        // Параметры Острова (Земли)
-        const island = {
-            x: canvas.width / 2,
-            y: canvas.height / 2,
-            width: 400,
-            height: 500
-        };
+        let gravity = 0.8;
 
         let player = {
-            x: island.x,
-            y: island.y,
-            size: 30,
-            speed: 5,
+            x: 100, y: 100, w: 40, h: 60,
             vx: 0, vy: 0,
-            z: 0, vz: 0,
-            isJumping: false,
-            isFalling: false
+            speed: 5, jumpPower: 15,
+            grounded: false
         };
 
-        let apples = [];
+        // Платформы (земля)
+        let platforms = [
+            { x: 0, y: canvas.height - 100, w: 400, h: 100 },
+            { x: 500, y: canvas.height - 200, w: 300, h: 40 },
+            { x: 200, y: canvas.height - 350, w: 200, h: 40 },
+            { x: 800, y: canvas.height - 150, w: 500, h: 150 }
+        ];
 
-        // Управление (Джойстик)
-        const joyContainer = document.getElementById('joy-container');
-        const joyStick = document.getElementById('joy-stick');
-        let joyActive = false;
+        let apples = [
+            { x: 550, y: canvas.height - 250, collected: false },
+            { x: 250, y: canvas.height - 400, collected: false },
+            { x: 900, y: canvas.height - 200, collected: false }
+        ];
 
-        joyContainer.addEventListener('touchstart', (e) => { joyActive = true; moveStick(e); });
-        window.addEventListener('touchmove', (e) => { if(joyActive) moveStick(e); });
-        window.addEventListener('touchend', () => { 
-            joyActive = false; 
-            joyStick.style.transform = `translate(0, 0)`;
-            player.vx = 0; player.vy = 0;
-        });
+        // Управление
+        let keys = { left: false, right: false };
 
-        function moveStick(e) {
-            if (player.isFalling) return;
-            const touch = e.touches[0];
-            const rect = joyContainer.getBoundingClientRect();
-            const dx = touch.clientX - (rect.left + 60);
-            const dy = touch.clientY - (rect.top + 60);
-            const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 40);
-            const angle = Math.atan2(dy, dx);
-            
-            joyStick.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`;
-            player.vx = Math.cos(angle) * (dist/40) * player.speed;
-            player.vy = Math.sin(angle) * (dist/40) * player.speed;
-        }
-
-        document.getElementById('action-btn').addEventListener('touchstart', (e) => {
-            if (!player.isJumping && !player.isFalling) {
-                player.vz = 10;
-                player.isJumping = true;
+        document.getElementById('left-btn').ontouchstart = () => keys.left = true;
+        document.getElementById('left-btn').ontouchend = () => keys.left = false;
+        document.getElementById('right-btn').ontouchstart = () => keys.right = true;
+        document.getElementById('right-btn').ontouchend = () => keys.right = false;
+        
+        document.getElementById('jump-btn').ontouchstart = (e) => {
+            e.preventDefault();
+            if (player.grounded) {
+                player.vy = -player.jumpPower;
+                player.grounded = false;
             }
-        });
-
-        function spawnApple() {
-            if (apples.length < 3) {
-                apples.push({
-                    x: island.x - island.width/2 + 30 + Math.random()*(island.width-60),
-                    y: island.y - island.height/2 + 30 + Math.random()*(island.height-60)
-                });
-            }
-        }
+        };
 
         function update() {
-            if (player.isFalling) {
-                player.z -= 5;
-                if (player.z < -500) restart();
-                return;
-            }
+            // Движение влево/вправо
+            if (keys.left) player.vx = -player.speed;
+            else if (keys.right) player.vx = player.speed;
+            else player.vx *= 0.8; // Трение
 
+            player.vy += gravity;
             player.x += player.vx;
             player.y += player.vy;
 
-            // Прыжок
-            if (player.isJumping) {
-                player.z += player.vz;
-                player.vz -= 0.6;
-                if (player.z <= 0) { player.z = 0; player.isJumping = false; }
-            }
+            player.grounded = false;
 
-            // Проверка: На земле ли мы?
-            const onIsland = (
-                player.x > island.x - island.width/2 &&
-                player.x < island.x + island.width/2 &&
-                player.y > island.y - island.height/2 &&
-                player.y < island.y + island.height/2
-            );
-
-            if (!onIsland && !player.isJumping) {
-                player.isFalling = true;
-                player.vx = 0; player.vy = 0;
+            // Коллизии с платформами
+            for (let p of platforms) {
+                if (player.x < p.x + p.w && player.x + player.w > p.x &&
+                    player.y < p.y + p.h && player.y + player.h > p.y) {
+                    
+                    // Если падаем сверху на платформу
+                    if (player.vy > 0 && player.y + player.h - player.vy <= p.y) {
+                        player.y = p.y - player.h;
+                        player.vy = 0;
+                        player.grounded = true;
+                    }
+                }
             }
 
             // Сбор яблок
-            apples.forEach((apple, i) => {
-                const d = Math.sqrt((player.x - apple.x)**2 + (player.y - apple.y)**2);
-                if (d < 30 && !player.isJumping) {
-                    apples.splice(i, 1);
+            apples.forEach(a => {
+                if (!a.collected && player.x < a.x + 30 && player.x + player.w > a.x &&
+                    player.y < a.y + 30 && player.y + player.h > a.y) {
+                    a.collected = true;
                     score++;
                     document.getElementById('score').innerText = score;
                 }
             });
 
-            spawnApple();
+            // Если упал в яму
+            if (player.y > canvas.height) {
+                player.x = 100; player.y = 100; player.vy = 0;
+            }
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Отрисовка острова (Земля)
+            // Облака/фон (просто для красоты)
+            ctx.fillStyle = "white";
+            ctx.beginPath(); ctx.arc(100, 100, 40, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(140, 100, 30, 0, Math.PI*2); ctx.fill();
+
+            // Отрисовка земли и платформ
             ctx.fillStyle = "#2ecc71"; // Трава
-            ctx.fillRect(island.x - island.width/2, island.y - island.height/2, island.width, island.height);
-            // Бортик земли для объема
-            ctx.fillStyle = "#78e08f";
-            ctx.fillRect(island.x - island.width/2, island.y + island.height/2, island.width, 10);
+            for (let p of platforms) {
+                ctx.fillRect(p.x, p.y, p.w, p.h);
+                ctx.fillStyle = "#8e44ad"; // Земля под травой
+                ctx.fillRect(p.x, p.y + 10, p.w, p.h - 10);
+                ctx.fillStyle = "#2ecc71";
+            }
 
             // Яблоки
             ctx.font = "30px Arial";
-            apples.forEach(a => ctx.fillText("🍎", a.x - 15, a.y + 10));
+            apples.forEach(a => {
+                if (!a.collected) ctx.fillText("🍎", a.x, a.y);
+            });
 
-            // Игрок
-            ctx.fillStyle = player.isFalling ? "#ff4d4d" : "white";
-            ctx.fillRect(player.x - 15, player.y - 15 - player.z, 30, 30);
-            ctx.strokeStyle = "black";
-            ctx.strokeRect(player.x - 15, player.y - 15 - player.z, 30, 30);
+            // Игрок (Персонаж как в Dan the Man)
+            ctx.fillStyle = "#fff";
+            ctx.fillRect(player.x, player.y, player.w, player.h); // Тело
+            ctx.fillStyle = "#3498db"; 
+            ctx.fillRect(player.x, player.y, player.w, 20); // Повязка ниндзя
+            ctx.fillStyle = "#000";
+            ctx.fillRect(player.x + 25, player.y + 5, 8, 8); // Глаза
 
             update();
             requestAnimationFrame(draw);
-        }
-
-        function restart() {
-            player.x = island.x;
-            player.y = island.y;
-            player.z = 0;
-            player.isFalling = false;
-            player.vx = 0; player.vy = 0;
-            score = 0;
-            document.getElementById('score').innerText = score;
-            apples = [];
         }
 
         draw();
