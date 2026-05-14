@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Simple Apple Clicker</title>
+    <title>Apple Clicker: Shop Edition</title>
     <style>
         body {
             font-family: sans-serif;
-            background-color: #121212;
+            background-color: #0f0f0f;
             color: white;
             display: flex;
             flex-direction: column;
@@ -17,180 +17,176 @@
             margin: 0;
             overflow: hidden;
             user-select: none;
-            touch-action: manipulation;
+        }
+
+        /* Кнопка магазина */
+        #shop-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #222;
+            border: 1px solid #444;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
         }
 
         /* Счетчик */
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+        .header { text-align: center; margin-bottom: 10px; }
+        #score { font-size: 50px; font-weight: bold; color: #ff4d4d; }
+        .info { font-size: 14px; opacity: 0.7; }
 
-        #score {
-            font-size: 60px;
-            font-weight: bold;
-            color: #ff4d4d;
-            display: block;
-        }
-
-        .info {
-            font-size: 14px;
-            opacity: 0.7;
-            margin-top: 5px;
-        }
-
-        /* Яблоко */
+        /* Яблоко и эффекты */
         #apple {
             font-size: 150px;
             cursor: pointer;
             transition: transform 0.1s;
-            margin: 30px 0;
-            display: inline-block;
+            margin: 20px 0;
         }
+        #apple:active { transform: scale(0.9); }
 
-        #apple:active {
-            transform: scale(0.9);
+        /* Стили для скинов */
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
         }
+        .rainbow-skin { animation: rainbow 3s linear infinite; }
+        .gold-skin { filter: sepia(1) saturate(10) brightness(1.2) drop-shadow(0 0 15px gold); }
 
-        /* Кнопки улучшений */
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            width: 250px;
-        }
-
+        /* Прокачка */
+        .controls { display: flex; flex-direction: column; gap: 10px; width: 250px; }
         .btn {
-            background-color: #1e1e1e;
+            background: #1a1a1a; border: 1px solid #333; color: white;
+            padding: 12px; border-radius: 10px; cursor: pointer;
+        }
+        .btn:disabled { opacity: 0.3; }
+
+        /* Окно магазина */
+        #shop-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #181818;
             border: 2px solid #333;
-            color: white;
-            padding: 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            text-align: left;
-            transition: 0.2s;
+            padding: 25px;
+            border-radius: 20px;
+            z-index: 100;
+            width: 280px;
         }
-
-        .btn:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #222;
         }
-
-        .btn b {
-            display: block;
-            font-size: 16px;
-            margin-bottom: 4px;
-        }
-
-        .btn span {
-            font-size: 12px;
-            color: #ffcc00;
+        .buy-skin {
+            background: #ffcc00; border: none; color: black;
+            padding: 5px 10px; border-radius: 5px; font-weight: bold;
         }
     </style>
 </head>
 <body>
 
+    <button id="shop-btn" onclick="toggleShop()">МАГАЗИН 🛒</button>
+
     <div class="header">
         <span id="score">0</span>
-        <div class="info">
-            Клик: <b id="val-click">1</b> | В сек: <b id="val-auto">0</b>
-        </div>
+        <div class="info">Клик: <b id="val-click">1</b> | Авто: <b id="val-auto">0</b></div>
     </div>
 
     <div id="apple">🍎</div>
 
     <div class="controls">
-        <button class="btn" id="buy-click">
-            <b>+1 к клику</b>
-            <span>Цена: <i id="cost-click">15</i></span>
-        </button>
+        <button class="btn" id="buy-click"><b>+1 к клику</b> <br> Цена: <span id="cost-click">15</span></button>
+        <button class="btn" id="buy-auto"><b>Автокликер</b> <br> Цена: <span id="cost-auto">50</span></button>
+    </div>
+
+    <!-- Магазин -->
+    <div id="shop-modal">
+        <h3 style="margin-top:0">Магазин скинов</h3>
         
-        <button class="btn" id="buy-auto">
-            <b>Автокликер (+1 сек)</b>
-            <span>Цена: <i id="cost-auto">50</i></span>
-        </button>
+        <div class="shop-item">
+            <span>🌈 Радужное</span>
+            <button class="buy-skin" onclick="buySkin('rainbow', 120000)">120k</button>
+        </div>
+
+        <div class="shop-item">
+            <span>✨ Золотое</span>
+            <button class="buy-skin" onclick="buySkin('gold', 150000)">150k</button>
+        </div>
+
+        <button onclick="toggleShop()" style="width:100%; background:none; border:none; color:#777; cursor:pointer">Закрыть</button>
     </div>
 
     <script>
-        // Данные игры
-        let apples = 0;
-        let power = 1;
-        let auto = 0;
-        let priceClick = 15;
-        let priceAuto = 50;
+        let apples = 0, power = 1, auto = 0, priceClick = 15, priceAuto = 50;
+        let ownedSkins = [];
+        let currentSkin = '';
 
-        // Элементы
-        const scoreEl = document.getElementById('score');
-        const appleEl = document.getElementById('apple');
-        const btnClick = document.getElementById('buy-click');
-        const btnAuto = document.getElementById('buy-auto');
-
-        const costClickEl = document.getElementById('cost-click');
-        const costAutoEl = document.getElementById('cost-auto');
-        const valClickEl = document.getElementById('val-click');
-        const valAutoEl = document.getElementById('val-auto');
-
-        // Функция обновления экрана
         function update() {
-            scoreEl.innerText = Math.floor(apples);
-            valClickEl.innerText = power;
-            valAutoEl.innerText = auto;
-            costClickEl.innerText = priceClick;
-            costAutoEl.innerText = priceAuto;
+            document.getElementById('score').innerText = Math.floor(apples);
+            document.getElementById('val-click').innerText = power;
+            document.getElementById('val-auto').innerText = auto;
+            document.getElementById('cost-click').innerText = priceClick;
+            document.getElementById('cost-auto').innerText = priceAuto;
+            document.getElementById('buy-click').disabled = apples < priceClick;
+            document.getElementById('buy-auto').disabled = apples < priceAuto;
 
-            btnClick.disabled = apples < priceClick;
-            btnAuto.disabled = apples < priceAuto;
-            
-            // Сохранение в память браузера
-            localStorage.setItem('simple_apple_save', JSON.stringify({
-                apples, power, auto, priceClick, priceAuto
+            const apple = document.getElementById('apple');
+            apple.className = currentSkin;
+
+            localStorage.setItem('apple_mini_shop_save', JSON.stringify({
+                apples, power, auto, priceClick, priceAuto, ownedSkins, currentSkin
             }));
         }
 
-        // Клик по яблоку
-        appleEl.onclick = () => {
-            apples += power;
-            update();
-        };
+        document.getElementById('apple').onclick = () => { apples += power; update(); };
 
-        // Покупка силы клика
-        btnClick.onclick = () => {
+        document.getElementById('buy-click').onclick = () => {
             if (apples >= priceClick) {
-                apples -= priceClick;
-                power += 1;
-                priceClick = Math.round(priceClick * 1.5);
-                update();
+                apples -= priceClick; power++;
+                priceClick = Math.round(priceClick * 1.5); update();
             }
         };
 
-        // Покупка автокликера
-        btnAuto.onclick = () => {
+        document.getElementById('buy-auto').onclick = () => {
             if (apples >= priceAuto) {
-                apples -= priceAuto;
-                auto += 1;
-                priceAuto = Math.round(priceAuto * 1.6);
-                update();
+                apples -= priceAuto; auto++;
+                priceAuto = Math.round(priceAuto * 1.6); update();
             }
         };
 
-        // Работа автокликера (раз в секунду)
-        setInterval(() => {
-            if (auto > 0) {
-                apples += auto;
-                update();
+        function buySkin(skin, price) {
+            if (ownedSkins.includes(skin)) {
+                currentSkin = (skin === 'rainbow') ? 'rainbow-skin' : 'gold-skin';
+            } else if (apples >= price) {
+                apples -= price;
+                ownedSkins.push(skin);
+                currentSkin = (skin === 'rainbow') ? 'rainbow-skin' : 'gold-skin';
             }
-        }, 1000);
-
-        // Загрузка сохранения
-        const saved = JSON.parse(localStorage.getItem('simple_apple_save'));
-        if (saved) {
-            apples = saved.apples;
-            power = saved.power;
-            auto = saved.auto;
-            priceClick = saved.priceClick;
-            priceAuto = saved.priceAuto;
+            update();
         }
 
+        function toggleShop() {
+            const modal = document.getElementById('shop-modal');
+            modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+        }
+
+        setInterval(() => { if (auto > 0) { apples += auto; update(); } }, 1000);
+
+        const saved = JSON.parse(localStorage.getItem('apple_mini_shop_save'));
+        if (saved) {
+            apples = saved.apples; power = saved.power; auto = saved.auto;
+            priceClick = saved.priceClick; priceAuto = saved.priceAuto;
+            ownedSkins = saved.ownedSkins || [];
+            currentSkin = saved.currentSkin || '';
+        }
         update();
     </script>
 </body>
