@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dan the Man Style Platformer</title>
+    <title>Apple Adventure 2D</title>
     <style>
-        body { margin: 0; background: #87CEEB; overflow: hidden; font-family: 'Arial', sans-serif; touch-action: none; user-select: none; }
+        body { margin: 0; background: #87CEEB; overflow: hidden; font-family: sans-serif; touch-action: none; user-select: none; }
         canvas { display: block; }
 
         /* Интерфейс */
@@ -14,28 +14,27 @@
         /* Управление */
         #controls { position: absolute; bottom: 30px; width: 100%; display: flex; justify-content: space-between; padding: 0 30px; box-sizing: border-box; }
         
-        .d-pad { display: grid; grid-template-columns: 60px 60px 60px; grid-template-rows: 60px 60px; }
-        .btn { width: 60px; height: 60px; background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .d-pad { display: flex; gap: 10px; }
+        .btn { width: 70px; height: 70px; background: rgba(0,0,0,0.6); border: 3px solid #fff; border-radius: 15px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 24px; }
         .btn:active { background: rgba(255,255,255,0.4); }
         
-        #jump-btn { width: 80px; height: 80px; border-radius: 50%; background: #e74c3c; border: 4px solid #c0392b; font-size: 20px; }
+        #jump-btn { width: 90px; height: 90px; border-radius: 50%; background: #e74c3c; border: 4px solid #c0392b; }
     </style>
 </head>
 <body>
 
     <div id="ui">
-        <div style="font-size: 24px;">🍎: <span id="score">0</span></div>
+        <div style="font-size: 24px;">🍎 Яблоки: <span id="score">0</span></div>
+        <div style="font-size: 20px; color: gold;">LVL: <span id="player-lvl">1</span></div>
     </div>
 
     <canvas id="game"></canvas>
 
     <div id="controls">
-        <!-- Крестик для ходьбы -->
         <div class="d-pad">
-            <div style="grid-column: 1; grid-row: 2;" class="btn" id="left-btn">◀</div>
-            <div style="grid-column: 3; grid-row: 2;" class="btn" id="right-btn">▶</div>
+            <div class="btn" id="left-btn">◀</div>
+            <div class="btn" id="right-btn">▶</div>
         </div>
-        <!-- Кнопка прыжка -->
         <div class="btn" id="jump-btn">↑</div>
     </div>
 
@@ -49,32 +48,43 @@
         let gravity = 0.8;
 
         let player = {
-            x: 100, y: 100, w: 40, h: 60,
+            x: 50, y: canvas.height - 150, w: 40, h: 50,
             vx: 0, vy: 0,
-            speed: 5, jumpPower: 15,
-            grounded: false
+            speed: 6, jumpPower: 16,
+            grounded: false,
+            lvl: 1, exp: 0, nextLvl: 3
         };
 
-        // Платформы (земля)
+        // Платформы (Опущены ниже по твоей просьбе)
         let platforms = [
-            { x: 0, y: canvas.height - 100, w: 400, h: 100 },
-            { x: 500, y: canvas.height - 200, w: 300, h: 40 },
-            { x: 200, y: canvas.height - 350, w: 200, h: 40 },
-            { x: 800, y: canvas.height - 150, w: 500, h: 150 }
+            // Первый этаж (земля)
+            { x: 0, y: canvas.height - 80, w: 500, h: 80 },
+            { x: 750, y: canvas.height - 80, w: 600, h: 80 },
+            
+            // Ступеньки
+            { x: 550, y: canvas.height - 180, w: 120, h: 25 }, 
+            { x: 350, y: canvas.height - 260, w: 120, h: 25 },
+
+            // Второй этаж
+            { x: 0, y: canvas.height - 350, w: 300, h: 25 },
+            { x: 500, y: canvas.height - 350, w: 400, h: 25 },
+
+            // Третий этаж
+            { x: 300, y: canvas.height - 480, w: 200, h: 25 }
         ];
 
         let apples = [
-            { x: 550, y: canvas.height - 250, collected: false },
-            { x: 250, y: canvas.height - 400, collected: false },
-            { x: 900, y: canvas.height - 200, collected: false }
+            { x: 800, y: canvas.height - 130, collected: false },
+            { x: 50, y: canvas.height - 400, collected: false },
+            { x: 380, y: canvas.height - 530, collected: false }
         ];
 
-        // Управление
         let keys = { left: false, right: false };
 
-        document.getElementById('left-btn').ontouchstart = () => keys.left = true;
+        // Обработчики кнопок
+        document.getElementById('left-btn').ontouchstart = (e) => { e.preventDefault(); keys.left = true; };
         document.getElementById('left-btn').ontouchend = () => keys.left = false;
-        document.getElementById('right-btn').ontouchstart = () => keys.right = true;
+        document.getElementById('right-btn').ontouchstart = (e) => { e.preventDefault(); keys.right = true; };
         document.getElementById('right-btn').ontouchend = () => keys.right = false;
         
         document.getElementById('jump-btn').ontouchstart = (e) => {
@@ -86,10 +96,9 @@
         };
 
         function update() {
-            // Движение влево/вправо
             if (keys.left) player.vx = -player.speed;
             else if (keys.right) player.vx = player.speed;
-            else player.vx *= 0.8; // Трение
+            else player.vx *= 0.8;
 
             player.vy += gravity;
             player.x += player.vx;
@@ -97,12 +106,10 @@
 
             player.grounded = false;
 
-            // Коллизии с платформами
+            // Коллизии
             for (let p of platforms) {
                 if (player.x < p.x + p.w && player.x + player.w > p.x &&
                     player.y < p.y + p.h && player.y + player.h > p.y) {
-                    
-                    // Если падаем сверху на платформу
                     if (player.vy > 0 && player.y + player.h - player.vy <= p.y) {
                         player.y = p.y - player.h;
                         player.vy = 0;
@@ -111,37 +118,41 @@
                 }
             }
 
-            // Сбор яблок
+            // Сбор яблок и уровень
             apples.forEach(a => {
                 if (!a.collected && player.x < a.x + 30 && player.x + player.w > a.x &&
                     player.y < a.y + 30 && player.y + player.h > a.y) {
                     a.collected = true;
                     score++;
+                    player.exp++;
+                    if (player.exp >= player.nextLvl) {
+                        player.lvl++;
+                        player.exp = 0;
+                        player.nextLvl += 2;
+                    }
                     document.getElementById('score').innerText = score;
+                    document.getElementById('player-lvl').innerText = player.lvl;
                 }
             });
 
-            // Если упал в яму
+            // Возрождение НА ЗЕМЛЕ при падении
             if (player.y > canvas.height) {
-                player.x = 100; player.y = 100; player.vy = 0;
+                player.x = 50; 
+                player.y = canvas.height - 200; 
+                player.vy = 0;
+                player.vx = 0;
             }
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Облака/фон (просто для красоты)
-            ctx.fillStyle = "white";
-            ctx.beginPath(); ctx.arc(100, 100, 40, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(140, 100, 30, 0, Math.PI*2); ctx.fill();
-
-            // Отрисовка земли и платформ
-            ctx.fillStyle = "#2ecc71"; // Трава
+            // Платформы
             for (let p of platforms) {
-                ctx.fillRect(p.x, p.y, p.w, p.h);
-                ctx.fillStyle = "#8e44ad"; // Земля под травой
+                ctx.fillStyle = "#2ecc71"; // Трава
+                ctx.fillRect(p.x, p.y, p.w, 10);
+                ctx.fillStyle = "#795548"; // Земля
                 ctx.fillRect(p.x, p.y + 10, p.w, p.h - 10);
-                ctx.fillStyle = "#2ecc71";
             }
 
             // Яблоки
@@ -150,13 +161,11 @@
                 if (!a.collected) ctx.fillText("🍎", a.x, a.y);
             });
 
-            // Игрок (Персонаж как в Dan the Man)
+            // Игрок
             ctx.fillStyle = "#fff";
-            ctx.fillRect(player.x, player.y, player.w, player.h); // Тело
-            ctx.fillStyle = "#3498db"; 
-            ctx.fillRect(player.x, player.y, player.w, 20); // Повязка ниндзя
-            ctx.fillStyle = "#000";
-            ctx.fillRect(player.x + 25, player.y + 5, 8, 8); // Глаза
+            ctx.fillRect(player.x, player.y, player.w, player.h);
+            ctx.fillStyle = "#333";
+            ctx.fillRect(player.x + 25, player.y + 10, 8, 8); // Глаз
 
             update();
             requestAnimationFrame(draw);
