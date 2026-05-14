@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apple Clicker: OS Edition</title>
+    <title>Apple Clicker: Final Edition</title>
     <style>
         :root {
             --accent: #f1c40f;
-            --glass: rgba(255, 255, 255, 0.08);
-            --border: rgba(255, 255, 255, 0.12);
+            --glass: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.15);
         }
 
         body {
@@ -27,62 +27,45 @@
 
         /* Панель счета */
         #score-panel {
-            margin-top: 40px; background: var(--glass); backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px); padding: 20px 40px; border-radius: 25px;
-            border: 1px solid var(--border); text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            margin-top: 50px; background: var(--glass); backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px); padding: 25px 50px; border-radius: 30px;
+            border: 1px solid var(--border); text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.7);
         }
 
-        #score { font-size: 50px; font-weight: 900; color: var(--accent); display: block; line-height: 1; margin-bottom: 10px; }
-        .stats { display: flex; gap: 15px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; }
-        .stats b { color: #fff; }
+        #score { font-size: 55px; font-weight: 900; color: var(--accent); display: block; line-height: 1; margin-bottom: 12px; }
+        .stats { display: flex; justify-content: center; gap: 20px; font-size: 13px; text-transform: uppercase; opacity: 0.8; }
+        .stats b { color: var(--accent); }
 
         #apple {
-            font-size: 150px; cursor: pointer; transition: transform 0.05s;
-            margin: 40px 0; display: inline-block;
+            font-size: 160px; cursor: pointer; transition: transform 0.05s;
+            margin: 45px 0; display: inline-block;
         }
         #apple:active { transform: scale(0.92); }
 
-        /* Админ-панель (Окно) */
-        #admin-modal {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
-            background: rgba(20, 20, 20, 0.95); padding: 30px; border-radius: 25px;
-            border: 2px solid var(--accent); z-index: 1000; display: none;
-            flex-direction: column; gap: 15px; width: 280px; text-align: center;
-            box-shadow: 0 0 50px rgba(241, 196, 15, 0.3); transition: 0.3s;
+        .upg-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 380px; }
+        .upg-btn { 
+            background: var(--glass); border: 1px solid var(--border); color: white; 
+            padding: 20px; border-radius: 22px; font-size: 14px; font-weight: bold;
         }
-        #admin-modal.show { display: flex; transform: translate(-50%, -50%) scale(1); }
-
-        .admin-btn {
-            padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer;
-        }
-
-        /* Остальное */
-        .upg-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 90%; max-width: 360px; }
-        .upg-btn { background: var(--glass); border: 1px solid var(--border); color: white; padding: 15px; border-radius: 18px; }
         .upg-btn:disabled { opacity: 0.2; }
 
+        /* Магазин */
         #shop-panel {
-            position: fixed; top: 0; right: -100%; width: 85%; height: 100%;
-            background: #111; transition: 0.4s; z-index: 500; padding: 25px; box-sizing: border-box;
+            position: fixed; top: 0; right: -100%; width: 88%; height: 100%;
+            background: #0f0f0f; transition: 0.4s cubic-bezier(0.1, 0.7, 0.1, 1); z-index: 500;
+            display: flex; flex-direction: column; padding: 30px; box-sizing: border-box;
         }
-        #shop-panel.open { right: 0; }
-        .skins-list { overflow-y: auto; flex-grow: 1; }
-        .skin-card { background: rgba(255,255,255,0.05); margin-bottom: 10px; padding: 12px; border-radius: 12px; display: flex; align-items: center; }
+        #shop-panel.open { right: 0; box-shadow: -15px 0 50px #000; }
+        .skins-list { overflow-y: auto; flex-grow: 1; margin-top: 20px; }
+        .skin-card { 
+            background: rgba(255,255,255,0.04); margin-bottom: 12px; padding: 15px; 
+            border-radius: 18px; display: flex; align-items: center; border-left: 4px solid var(--accent);
+        }
         
-        #admin-trigger { position: fixed; top: 0; left: 0; width: 70px; height: 70px; z-index: 999; }
+        .hint { color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 25px; letter-spacing: 1px; }
     </style>
 </head>
 <body>
-
-    <div id="admin-trigger" onclick="adminStep('corner')"></div>
-
-    <!-- Админ Окно -->
-    <div id="admin-modal">
-        <h3 style="margin: 0 0 10px 0; color: var(--accent);">ADMIN PANEL</h3>
-        <button class="admin-btn" style="background: #2ecc71;" onclick="cheat(1000000)">+1,000,000 Яблок</button>
-        <button class="admin-btn" style="background: #e74c3c; color: white;" onclick="resetGame()">СБРОСИТЬ ВСЁ</button>
-        <button class="admin-btn" style="background: #333; color: white;" onclick="closeAdmin()">ЗАКРЫТЬ</button>
-    </div>
 
     <audio id="bg-music" loop>
         <source src="https://actions.google.com/static/audio/libs/relaxing_sounds/ambience_relaxing_waves.mp3" type="audio/mpeg">
@@ -91,22 +74,24 @@
     <div id="score-panel">
         <span id="score">0</span>
         <div class="stats">
-            <div>Клик: <b id="ui-click">1</b></div>
-            <div>Секунда: <b id="ui-auto">0</b></div>
+            <div>За клик: <b id="ui-click">+1</b></div>
+            <div>В секунду: <b id="ui-auto">+0</b></div>
         </div>
     </div>
 
-    <div id="apple" onclick="adminStep('apple')">🍎</div>
+    <div id="apple">🍎</div>
 
     <div class="upg-buttons">
-        <button class="upg-btn" id="btn-click">КЛИК<br><b id="c-cost">15</b></button>
-        <button class="upg-btn" id="btn-auto">ФЕРМА<br><b id="a-cost">50</b></button>
+        <button class="upg-btn" id="btn-click">УЛУЧШИТЬ КЛИК<br><b id="c-cost">15</b></button>
+        <button class="upg-btn" id="btn-auto">КУПИТЬ ФЕРМУ<br><b id="a-cost">50</b></button>
     </div>
 
+    <div class="hint">СВАЙП ВЛЕВО — МАГАЗИН СКИНОВ</div>
+
     <div id="shop-panel">
-        <h2 style="color: var(--accent); text-align: center;">МАГАЗИН</h2>
+        <h2 style="color: var(--accent); text-align: center; margin: 0;">МАГАЗИН</h2>
         <div class="skins-list" id="skins-list"></div>
-        <button onclick="toggleShop(false)" style="width:100%; padding:10px; margin-top:10px; background:#222; border:none; color:#777; border-radius:10px;">НАЗАД</button>
+        <button onclick="toggleShop(false)" style="width:100%; padding:15px; margin-top:15px; background:none; border:1px solid #333; color:#aaa; border-radius:15px;">ЗАКРЫТЬ</button>
     </div>
 
     <script>
@@ -140,7 +125,7 @@
             apple.style.filter = (game.filter === 'rainbow') ? '' : game.filter;
 
             renderSkins();
-            localStorage.setItem('apple_v6_save', JSON.stringify(game));
+            localStorage.setItem('apple_clicker_save', JSON.stringify(game));
         }
 
         function renderSkins() {
@@ -151,9 +136,9 @@
                 const card = document.createElement('div');
                 card.className = 'skin-card';
                 card.innerHTML = `
-                    <div style="font-size:30px; margin-right:15px; filter:${s.f === 'rainbow' ? '' : s.f}" class="${s.f==='rainbow'?'rainbow-skin':''}">🍎</div>
+                    <div style="font-size:32px; margin-right:15px; filter:${s.f === 'rainbow' ? '' : s.f}" class="${s.f==='rainbow'?'rainbow-skin':''}">🍎</div>
                     <div style="flex-grow:1"><b>${s.name}</b></div>
-                    <button onclick="handleSkin('${s.id}')" style="background:${isOwned?'#333': 'var(--accent)'}; border:none; padding:8px; border-radius:8px; font-weight:bold;">
+                    <button onclick="handleSkin('${s.id}')" style="background:${isOwned?'#333': 'var(--accent)'}; border:none; padding:10px 15px; border-radius:10px; font-weight:bold; color:${isOwned?'#fff':'#000'}">
                         ${isOwned ? (game.filter === s.f ? 'Надето' : 'Выбрать') : s.price}
                     </button>`;
                 list.appendChild(card);
@@ -167,13 +152,11 @@
             updateUI();
         };
 
-        // Клики
         document.getElementById('apple').onpointerdown = () => {
             game.score += game.clickP; updateUI();
             const m = document.getElementById('bg-music'); if(m.paused) m.play();
         };
 
-        // Улучшения
         document.getElementById('btn-click').onclick = () => {
             if (game.score >= game.clickC) { game.score -= game.clickC; game.clickP++; game.clickC = Math.round(game.clickC * 1.6); updateUI(); }
         };
@@ -181,17 +164,6 @@
             if (game.score >= game.autoC) { game.score -= game.autoC; game.autoP++; game.autoC = Math.round(game.autoC * 1.7); updateUI(); }
         };
 
-        // Админка
-        let combo = "";
-        window.adminStep = (t) => {
-            combo += (t === 'corner' ? 'C' : 'A');
-            if (combo.endsWith("CCCAA")) { document.getElementById('admin-modal').classList.add('show'); combo = ""; }
-        };
-        window.cheat = (n) => { game.score += n; updateUI(); };
-        window.resetGame = () => { if(confirm("Сбросить всё?")){ localStorage.clear(); location.reload(); } };
-        window.closeAdmin = () => document.getElementById('admin-modal').classList.remove('show');
-
-        // Свайпы
         let sX = 0;
         document.ontouchstart = e => sX = e.touches[0].clientX;
         document.ontouchend = e => {
@@ -202,7 +174,7 @@
 
         setInterval(() => { if (game.autoP > 0) { game.score += game.autoP; updateUI(); } }, 1000);
 
-        const saved = JSON.parse(localStorage.getItem('apple_v6_save'));
+        const saved = JSON.parse(localStorage.getItem('apple_clicker_save'));
         if (saved) game = {...game, ...saved};
         updateUI();
     </script>
