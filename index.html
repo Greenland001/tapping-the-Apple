@@ -3,191 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Apple Clicker: Shop Edition</title>
+    <title>Apple Brawl Mode</title>
     <style>
-        body {
-            font-family: sans-serif;
-            background-color: #0f0f0f;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            user-select: none;
+        body { margin: 0; background: #222; overflow: hidden; font-family: sans-serif; touch-action: none; user-select: none; }
+        canvas { display: block; background: #34495e; }
+
+        /* UI */
+        #ui { position: absolute; top: 15px; left: 15px; color: white; pointer-events: none; }
+        #score { font-size: 24px; font-weight: bold; color: #f1c40f; }
+
+        /* Джойстик (Крестик) */
+        #joy-container {
+            position: absolute; bottom: 40px; left: 40px;
+            width: 120px; height: 120px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%; border: 2px solid rgba(255,255,255,0.3);
+        }
+        #joy-stick {
+            position: absolute; top: 30px; left: 30px;
+            width: 60px; height: 60px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
 
-        /* Кнопка магазина */
-        #shop-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: #222;
-            border: 1px solid #444;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        /* Счетчик */
-        .header { text-align: center; margin-bottom: 10px; }
-        #score { font-size: 50px; font-weight: bold; color: #ff4d4d; }
-        .info { font-size: 14px; opacity: 0.7; }
-
-        /* Яблоко и эффекты */
-        #apple {
-            font-size: 150px;
-            cursor: pointer;
-            transition: transform 0.1s;
-            margin: 20px 0;
-        }
-        #apple:active { transform: scale(0.9); }
-
-        /* Стили для скинов */
-        @keyframes rainbow {
-            0% { filter: hue-rotate(0deg); }
-            100% { filter: hue-rotate(360deg); }
-        }
-        .rainbow-skin { animation: rainbow 3s linear infinite; }
-        .gold-skin { filter: sepia(1) saturate(10) brightness(1.2) drop-shadow(0 0 15px gold); }
-
-        /* Прокачка */
-        .controls { display: flex; flex-direction: column; gap: 10px; width: 250px; }
-        .btn {
-            background: #1a1a1a; border: 1px solid #333; color: white;
-            padding: 12px; border-radius: 10px; cursor: pointer;
-        }
-        .btn:disabled { opacity: 0.3; }
-
-        /* Окно магазина */
-        #shop-modal {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #181818;
-            border: 2px solid #333;
-            padding: 25px;
-            border-radius: 20px;
-            z-index: 100;
-            width: 280px;
-        }
-        .shop-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #222;
-        }
-        .buy-skin {
-            background: #ffcc00; border: none; color: black;
-            padding: 5px 10px; border-radius: 5px; font-weight: bold;
+        /* Кнопка действия (Прыжок/Атака) */
+        #action-btn {
+            position: absolute; bottom: 50px; right: 50px;
+            width: 90px; height: 90px;
+            background: #e74c3c; border-radius: 50%;
+            border: 4px solid #c0392b; color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 14px;
         }
     </style>
 </head>
 <body>
 
-    <button id="shop-btn" onclick="toggleShop()">МАГАЗИН 🛒</button>
-
-    <div class="header">
-        <span id="score">0</span>
-        <div class="info">Клик: <b id="val-click">1</b> | Авто: <b id="val-auto">0</b></div>
+    <div id="ui">
+        <div id="score">Яблоки: 0</div>
+        <div id="lvl-text">Уровень: 1</div>
     </div>
 
-    <div id="apple">🍎</div>
+    <canvas id="game"></canvas>
 
-    <div class="controls">
-        <button class="btn" id="buy-click"><b>+1 к клику</b> <br> Цена: <span id="cost-click">15</span></button>
-        <button class="btn" id="buy-auto"><b>Автокликер</b> <br> Цена: <span id="cost-auto">50</span></button>
+    <div id="joy-container">
+        <div id="joy-stick"></div>
     </div>
 
-    <!-- Магазин -->
-    <div id="shop-modal">
-        <h3 style="margin-top:0">Магазин скинов</h3>
-        
-        <div class="shop-item">
-            <span>🌈 Радужное</span>
-            <button class="buy-skin" onclick="buySkin('rainbow', 120000)">120k</button>
-        </div>
-
-        <div class="shop-item">
-            <span>✨ Золотое</span>
-            <button class="buy-skin" onclick="buySkin('gold', 150000)">150k</button>
-        </div>
-
-        <button onclick="toggleShop()" style="width:100%; background:none; border:none; color:#777; cursor:pointer">Закрыть</button>
-    </div>
+    <div id="action-btn">ПРЫЖОК</div>
 
     <script>
-        let apples = 0, power = 1, auto = 0, priceClick = 15, priceAuto = 50;
-        let ownedSkins = [];
-        let currentSkin = '';
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let score = 0;
+        let lvl = 1;
+
+        // Игрок
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: 40,
+            speed: 5,
+            vx: 0, vy: 0,
+            z: 0, vz: 0, // Для прыжка
+            isJumping: false
+        };
+
+        let apples = [];
+
+        // Джойстик логика
+        const joyContainer = document.getElementById('joy-container');
+        const joyStick = document.getElementById('joy-stick');
+        let joyActive = false;
+        let joyPos = { x: 0, y: 0 };
+
+        joyContainer.addEventListener('touchstart', (e) => { joyActive = true; moveStick(e); });
+        window.addEventListener('touchmove', (e) => { if(joyActive) moveStick(e); });
+        window.addEventListener('touchend', () => { 
+            joyActive = false; 
+            joyStick.style.transform = `translate(0, 0)`;
+            player.vx = 0; player.vy = 0;
+        });
+
+        function moveStick(e) {
+            const touch = e.touches[0];
+            const rect = joyContainer.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const maxDist = 40;
+
+            if (dist > maxDist) {
+                dx *= maxDist / dist;
+                dy *= maxDist / dist;
+            }
+
+            joyStick.style.transform = `translate(${dx}px, ${dy}px)`;
+            
+            // Направление движения игрока
+            player.vx = (dx / maxDist) * player.speed;
+            player.vy = (dy / maxDist) * player.speed;
+        }
+
+        // Прыжок
+        document.getElementById('action-btn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (!player.isJumping) {
+                player.vz = 10;
+                player.isJumping = true;
+            }
+        });
+
+        function spawnApple() {
+            if (apples.length < 5) {
+                apples.push({
+                    x: Math.random() * (canvas.width - 40) + 20,
+                    y: Math.random() * (canvas.height - 40) + 20
+                });
+            }
+        }
 
         function update() {
-            document.getElementById('score').innerText = Math.floor(apples);
-            document.getElementById('val-click').innerText = power;
-            document.getElementById('val-auto').innerText = auto;
-            document.getElementById('cost-click').innerText = priceClick;
-            document.getElementById('cost-auto').innerText = priceAuto;
-            document.getElementById('buy-click').disabled = apples < priceClick;
-            document.getElementById('buy-auto').disabled = apples < priceAuto;
+            // Движение
+            player.x += player.vx;
+            player.y += player.vy;
 
-            const apple = document.getElementById('apple');
-            apple.className = currentSkin;
+            // Прыжок (физика высоты)
+            if (player.isJumping) {
+                player.z += player.vz;
+                player.vz -= 0.6; // Гравитация
+                if (player.z <= 0) {
+                    player.z = 0;
+                    player.isJumping = false;
+                }
+            }
 
-            localStorage.setItem('apple_mini_shop_save', JSON.stringify({
-                apples, power, auto, priceClick, priceAuto, ownedSkins, currentSkin
-            }));
+            // Границы экрана
+            player.x = Math.max(20, Math.min(canvas.width - 20, player.x));
+            player.y = Math.max(20, Math.min(canvas.height - 20, player.y));
+
+            // Сбор яблок
+            apples.forEach((apple, i) => {
+                const dist = Math.sqrt((player.x - apple.x)**2 + (player.y - apple.y)**2);
+                if (dist < 30) {
+                    apples.splice(i, 1);
+                    score++;
+                    document.getElementById('score').innerText = `Яблоки: ${score}`;
+                    if (score % 5 === 0) lvl++;
+                    document.getElementById('lvl-text').innerText = `Уровень: ${lvl}`;
+                }
+            });
+
+            spawnApple();
         }
 
-        document.getElementById('apple').onclick = () => { apples += power; update(); };
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        document.getElementById('buy-click').onclick = () => {
-            if (apples >= priceClick) {
-                apples -= priceClick; power++;
-                priceClick = Math.round(priceClick * 1.5); update();
-            }
-        };
+            // Сетка пола (как в Starr Park)
+            ctx.strokeStyle = "rgba(255,255,255,0.05)";
+            for(let i=0; i<canvas.width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke(); }
+            for(let i=0; i<canvas.height; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(canvas.width,i); ctx.stroke(); }
 
-        document.getElementById('buy-auto').onclick = () => {
-            if (apples >= priceAuto) {
-                apples -= priceAuto; auto++;
-                priceAuto = Math.round(priceAuto * 1.6); update();
-            }
-        };
+            // Тень игрока
+            ctx.fillStyle = "rgba(0,0,0,0.3)";
+            ctx.beginPath();
+            ctx.ellipse(player.x, player.y, 20, 10, 0, 0, Math.PI*2);
+            ctx.fill();
 
-        function buySkin(skin, price) {
-            if (ownedSkins.includes(skin)) {
-                currentSkin = (skin === 'rainbow') ? 'rainbow-skin' : 'gold-skin';
-            } else if (apples >= price) {
-                apples -= price;
-                ownedSkins.push(skin);
-                currentSkin = (skin === 'rainbow') ? 'rainbow-skin' : 'gold-skin';
-            }
+            // Яблоки
+            ctx.font = "30px Arial";
+            apples.forEach(apple => ctx.fillText("🍎", apple.x - 15, apple.y + 10));
+
+            // Игрок (Белый куб с высотой Z)
+            ctx.fillStyle = "white";
+            ctx.fillRect(player.x - 20, player.y - 20 - player.z, 40, 40);
+            ctx.strokeStyle = "black";
+            ctx.strokeRect(player.x - 20, player.y - 20 - player.z, 40, 40);
+
             update();
+            requestAnimationFrame(draw);
         }
 
-        function toggleShop() {
-            const modal = document.getElementById('shop-modal');
-            modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
-        }
-
-        setInterval(() => { if (auto > 0) { apples += auto; update(); } }, 1000);
-
-        const saved = JSON.parse(localStorage.getItem('apple_mini_shop_save'));
-        if (saved) {
-            apples = saved.apples; power = saved.power; auto = saved.auto;
-            priceClick = saved.priceClick; priceAuto = saved.priceAuto;
-            ownedSkins = saved.ownedSkins || [];
-            currentSkin = saved.currentSkin || '';
-        }
-        update();
+        setInterval(spawnApple, 2000);
+        draw();
     </script>
 </body>
 </html>
